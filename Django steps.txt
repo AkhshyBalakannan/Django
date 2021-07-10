@@ -1,0 +1,40 @@
+# This Notepad is to see the basics of Django
+
+// Usually we install Django in an virtual env and so we need to create a virtual env 
+	to do so we give the command python -m venv venv_name
+
+// To install Django we can give 			pip install django
+
+// To view the version of Django we can give		python -m django --version
+
+// To see all the list of sub command we can give 	django-admin
+
+// To create a new project we can give 			django-admin startproject project_name
+
+// To start up the server we can give 			python manage.py runserver
+
+// To create an app for our django app we can give 	python manage.py startapp blog
+
+// views.py is inside the app dir which we need
+	httpresponse that is used to give router	from django.http import HttpResponse
+
+// This vews folder are just the logics and we map 
+	the views with the urls.py which is similar
+	to the django app urls.py file			from . import views
+
+// Also to make this work we need to add the urls
+	from the blog with the django urls,
+	to do so we need include the url path
+	by importing include from django.urls
+	in the django urls.py				path('blog/', include('blog.urls'))
+
+// This will chop of the string 'blog' and send
+	the other value in strings			
+
+// now it goes to the blog.urls.py and checks the
+	pattern from urlpattern and checks for path	path('', views.home, name='blog-home')
+
+// Now it takes us to the views dir and sees for
+	home function which does the work		def home(request):
+								return HttpResponse(<h1>HI</h1>)
+

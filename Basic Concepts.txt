@@ -1,0 +1,113 @@
+DJANGO 
+
+Django in 2003 to build Web apps for the newspaper
+
+Django always had extensive documentation, historically a weakness for open-source projects.
+--------------------------------------------------------------------------------------------
+Django follows the MVC pattern
+
+Model View Controller
+	This is an pattern which is used to reduce the complexity of design
+	Here we split all the works between these three.
+	Controller is the brain of the operation which handles the request and gives command
+	Model is the main next thing which speaks with the database
+	View is the third thing which creates the response asked by controller
+	
+	NOTE: These two view and model will never communicate to each other
+		All the data request and response are made by controller
+---------------------------------------------------------------------------------------------
+What is Django
+	Django is an open-source framework
+	Django with the base of python
+	Django is famous for simplicity, relaibility.
+	MVC ORM
+	HTTP Libraries
+	Python unittest
+---------------------------------------------------------------------------------------------
+Why is Django
+	Django is fast and simple
+	DRY
+	Its Secure
+		clickjacking
+		cross-site Scripting
+		SQL injection
+	Suits any web application
+	Its well-established
+---------------------------------------------------------------------------------------------
+What can we do in Django
+	Django was created first for newspaper publisher web
+	Built-in custom CRM system
+	B2B CRM system
+	High load booking engines
+// Django can be used for some additional features also
+	Email system for sending notification
+	Data-analysis tools
+	Admin dashboards
+	Photo-based verfication system
+---------------------------------------------------------------------------------------------
+Key Features of Django
+	a. Scalability
+	b. Portability
+	c. Security
+	d. Versatility
+	e. Packages
+	f. Ease of Use
+
+	Multiple databases can be connected
+	Http requests are named as views
+	Batteries included
+	Own webserver
+	Dynamic CRUD config with admin
+	Middleware support
+	More than one Iterations at a time 
+---------------------------------------------------------------------------------------------
+MVT
+	Model View Template
+	A template an HTML file mixed with DTL	
+---------------------------------------------------------------------------------------------
+Model 
+	The Model class holds essential fields and methods. 
+	For each model class, we have a table in the database. 
+	Model is a subclass of django.db.models.Model. 
+	Each field here denotes a database field. 
+	With Django, we have a database-abstraction API 
+	That lets us perform CRUD (Create-Retrieve-Update-Delete) operations on mapped tables.
+---------------------------------------------------------------------------------------------
+Prerequisites to Creating a Project
+	a. Starting Project
+	b. Running the Server
+	c. Setting up a database
+	d. Web Server
+---------------------------------------------------------------------------------------------
+Project Structure
+	a. manage.py
+	b. Project folder
+	c. db.sqlite3
+---------------------------------------------------------------------------------------------
+Creating an Application
+	
+	Migrations- This holds another __init__.py file.
+	__init__.py- This is a Python package.
+	admin.py- This lets us make the app modifiable in the admin interface.
+	apps.py- This holds the names of all your applications.
+	models.py- This holds all application models.
+	tests.py- This holds unit tests for the project.
+	views.py- This holds the application views for the project.
+----------------------------------------------------------------------------------------------
+In your settings.py, you can add your app name in the INSTALLED_APPS construct-
+----------------------------------------------------------------------------------------------
+
+Cross Platform
+
+e-commerces, ticket boking, 
+
+Custome CRMsystems
+high load booking 
+IOS and Android app
+CRM B2B
+Customer Relationship Management System Meaning Defined
+bussiness to bussiness "
+
+Admin dashboards;
+Photo-based verification systems;
+
