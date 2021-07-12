@@ -1,0 +1,232 @@
+Migration Operations
+
+https://docs.djangoproject.com/en/3.1/ref/migration-operations/
+
+Migration files are composed of one or more operations,
+objects that declaratively record what the migration should do
+to your database
+
+To create an empty migration we can give 
+	python manage.py makemigrations --empty yourappname
+This is above step is OKIESH to do but should be carefull
+because it may confuse the autodetector and make results wrong
+
+Schema Operations
+	
+	CreateModel
+	class CreateMdel(name,field,option=None,bases=None,manager=None)
+NOTE: THIS CREATES AN NEW MODEL AND TABLE IN DB
+	
+	DeleteModel
+	class DeleteModel(name)
+
+	RenameModel
+	class RenameModel(old_name, new_name)
+NOTE: THIS WILL DELETE THE MODEL AND RECREATE IT DATA WILL BE LOST
+
+	AlterModelTable
+	class AlterModelTable(name,table)
+	changes the model's table name
+
+	AlterUniqueTogether
+	class AlterUniqueTogether(name, unique_together)
+	changes the models set of unique
+
+	AlterIndexTogether
+	class AlterIndexTogether(name, index_together)
+	changes the model set of custom indexes
+	
+	AlterOrderWithRespectTo
+	class AlterOrderWithRespectTo(name, order_with_respect_to)
+	makes or deletes the _order column needed
+
+	AlterModelOptions
+	class AlterModelOptions(name, option)
+	stores changes to miscellaneous model option like permissions
+	and verbose_name.
+
+	AlterModelManagers
+	class AlterModelManagers(name, managers)
+	Alters the managers that are available during migrations
+
+---------------------------------------------------------------------
+
+	AddField
+	class Addfield(model_name,name,field,preserve_default=true)
+	adds a field to model model_name 
+
+	RemoveField
+	class RemoveField(model_name, name)
+	removes a field from model
+
+	AlterField
+	class AlterField(model_name,name,field,preserve_default=true)
+	Alter a fields definition, including changes to its type
+
+	RenameField
+	class RenameField(model_name,old_name,new_name)
+	changes a fields name
+
+---------------------------------------------------------------------	
+
+	AddIndex
+	class AddIndex(model_name,index)
+	creates an index in the database table for the model
+	index is an instance pf the Index class
+
+	RemoveIndex
+	class RemoveIndex(model_name,name)
+
+---------------------------------------------------------------------	
+
+	AddConstraint
+	class AddConstraint(model_name, constraint)
+	creates a constraint in the db table for model
+
+	RemoveConstraint
+	class RemoveConstraint(model_name,name)
+
+A constraint is an module which is present inside the django.db.models.constraints
+
+Referencing built-in contraints
+constraints in abstract base classes
+validation of constraints
+----------------------------------------------------------------------
+
+SPECIAL OPERATIONS
+	
+	RunSQL
+	class RunSQL(sql, reverse_sql=None, 
+		State_operation=None, hints=None, elidable=False)
+	
+	Allows running arbitrary SQL on database 
+	
+	migrations.RunSQL('INSERT INTO musician (name) VALUES ('Reinhardth')')
+	migrations.RunSQL({("INSERT INTO musician (name) VALUES ('Reinhardt');", None)])
+	migrations.RunSQL([("INSERT INTO musician (name) VALUES (%s);", ['Reinhardt'])])
+		
+	Reverse_SQL
+	migrations.RunSQL(
+    	sql=[("INSERT INTO musician (name) VALUES (%s);", ['Reinhardt'])],
+    	reverse_sql=[("DELETE FROM musician where name=%s;", ['Reinhardt'])],
+	)
+
+
+	migrations.RunSQL(
+    	"ALTER TABLE musician ADD COLUMN name varchar(255) NOT NULL;",
+    	state_operations=[
+        	migrations.AddField(
+            	'musician',
+            	'name',
+            	models.CharField(max_length=255),
+        	),
+    	],
+	)
+
+	
+	RunSQL.noop
+	pass the RunSQL.noop attribute to sql or reverse_sql when operation dont want
+	to change things
+
+	
+	RunPython
+	
+	class RunPython(code, reverse_code=None,atomic=None,hints=None,elidable=False)
+	Runs custom python code in a historical context
+	RunPython should be callable objects that accept two arguments
+
+from django.db import migrations
+
+def forwards_func(apps, schema_editor):
+    # We get the model from the versioned app registry;
+    # if we directly import it, it'll be the wrong version
+    Country = apps.get_model("myapp", "Country")
+    db_alias = schema_editor.connection.alias
+    Country.objects.using(db_alias).bulk_create([
+        Country(name="USA", code="us"),
+        Country(name="France", code="fr"),
+    ])
+
+def reverse_func(apps, schema_editor):
+    # forwards_func() creates two Country instances,
+    # so reverse_func() should delete them.
+    Country = apps.get_model("myapp", "Country")
+    db_alias = schema_editor.connection.alias
+    Country.objects.using(db_alias).filter(name="USA", code="us").delete()
+    Country.objects.using(db_alias).filter(name="France", code="fr").delete()
+
+class Migration(migrations.Migration):
+
+    dependencies = []
+
+    operations = [
+        migrations.RunPython(forwards_func, reverse_func),
+    ]
+
+SAME AS RUNSQL WE SHOULD TELL THE SCOPE OTHERWISE USE THIS
+SEPARATE DATABASE AND STATE TO ADD OPERATION 
+IF WE DONT DO THAN AUTODETECTOR WILL STOP WORKING CORRECTLY
+
+ATOMIC=TRUE RUNPYTHON GIVES YOU ERROR AND CRASH
+ATOMIC=FALSE TO RUNPYTHON WHILE SAME SCHEMA_EDITOR WILL BE OKAY
+
+DDL TRANSACTION WILL NOT ADD AUTO-TRANS FOR EACH MIGRATION 
+AVOID SCHEMA CHANGES AND RUNPYTHON 
+OTHERWISE 
+OPERATIONAL ERROR : CANNOT ALTER
+
+
+
+WRITING OWN OPERATION
+
+from django.db.migrations.operations.base import Operation
+
+class MyCustomOperation(Operation):
+
+    # If this is False, it means that this operation will be ignored by
+    # sqlmigrate; if true, it will be run and the SQL collected for its output.
+    reduces_to_sql = False
+
+    # If this is False, Django will refuse to reverse past this operation.
+    reversible = False
+
+    def __init__(self, arg1, arg2):
+        # Operations are usually instantiated with arguments in migration
+        # files. Store the values of them on self for later use.
+        pass
+
+    def state_forwards(self, app_label, state):
+        # The Operation should take the 'state' parameter (an instance of
+        # django.db.migrations.state.ProjectState) and mutate it to match
+        # any schema changes that have occurred.
+        pass
+
+    def database_forwards(self, app_label, schema_editor, from_state, to_state):
+        # The Operation should use schema_editor to apply any changes it
+        # wants to make to the database.
+        pass
+
+    def database_backwards(self, app_label, schema_editor, from_state, to_state):
+        # If reversible is True, this is called when the operation is reversed.
+        pass
+
+    def describe(self):
+        # This is used to describe what the operation does in console output.
+        return "Custom Operation"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

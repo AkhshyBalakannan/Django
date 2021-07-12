@@ -1,40 +1,233 @@
 # This Notepad is to see the basics of Django
 
 // Usually we install Django in an virtual env and so we need to create a virtual env 
-	to do so we give the command python -m venv venv_name
+	to do, so we give the command python -m venv venv_name
+-----------------------------------------------------------------------------------------------
+BASIC CONFIG 
+-----------------------------------------------------------------------------------------------
 
-// To install Django we can give 			pip install django
+/0.1/ To install Django we can give 			pip install django
 
-// To view the version of Django we can give		python -m django --version
+/0.2/ To view the version of Django we can give		python -m django --version
 
-// To see all the list of sub command we can give 	django-admin
+/0.3/ To see all the list of sub command we can give 	django-admin
 
-// To create a new project we can give 			django-admin startproject project_name
+/1/ To create a new project we can give 		django-admin startproject project_name
 
-// To start up the server we can give 			python manage.py runserver
+/2/ To start up the server we can give 			python manage.py runserver
 
-// To create an app for our django app we can give 	python manage.py startapp blog
+/2/ Usually this runs in 8000 to change			py manage.py runserver 8080
 
-// views.py is inside the app dir which we need
+/2/ To showcase in all server we can give		py manage.py runserver 0:8080
+
+/3/ To create an app for our django app we can give 	python manage.py startapp blog
+
+/4/ views.py is inside the app dir which we need
 	httpresponse that is used to give router	from django.http import HttpResponse
 
-// This vews folder are just the logics and we map 
+/5/ This vews folder are just the logics and we map 
 	the views with the urls.py which is similar
 	to the django app urls.py file			from . import views
 
-// Also to make this work we need to add the urls
+/5/ Also to make this work we need to add the urls
 	from the blog with the django urls,
-	to do so we need include the url path
+	to do so we need include to the url path
 	by importing include from django.urls
 	in the django urls.py				path('blog/', include('blog.urls'))
 
-// This will chop of the string 'blog' and send
+/5/ This will chop of the string 'blog' and send
 	the other value in strings			
 
-// now it goes to the blog.urls.py and checks the
+/6/ now it goes to the blog.urls.py and checks the
 	pattern from urlpattern and checks for path	path('', views.home, name='blog-home')
 
-// Now it takes us to the views dir and sees for
+/7/ Now it takes us to the views dir and sees for
 	home function which does the work		def home(request):
 								return HttpResponse(<h1>HI</h1>)
+
+--------------------------------------------------------------------------------------------------
+MODEL AND API (DATABASE CONNECTION AND CONFIG USING DJANGO API)
+--------------------------------------------------------------------------------------------------
+
+/0.1/ Database setup is the way to tell Django what db 
+	we are going to use which will be in 		DATABASES 'DEFAULT'
+							ENGINE django.db.backends.db_name
+							NAME full_path/including/file_name
+
+/0.2/ If we are going to use other db than SQlite we
+	need to create the database first and add it 
+	we also should give create databses privileges	mysite/settings.py
+
+/1/ Model.py is defaultly created inside the app,
+	we can create our own models			class model_name(models.Model):
+
+/2/ To tell the project we have an app to include	INSTALLED_APPS=[polls.apps.PollsConfig]
+	which is present inside settings.py
+
+/3/ Next step is to tell Django to create model and 
+	make changes that we made to existing model	python manage.py makemigrations polls
+
+/3/ To run the migration we created its just migrate 
+	with name sqlmigrate will return us SQL data	py manage.py sqlmigrate polls 0001
+
+/4/ Now to create those model tables in database 	py manage.py migrate
+
+/5/ API Django offers us					py manage.py shell
+
+/6/ Inside the API interface we can import the model	from polls.models import choice, question
+
+// We can also import timezone from django		from django.utils import timezone
+
+// All the datas created are by instances and 
+	its important to save these instances		q.save()
+
+// Automatic id are created by Django 			q.id
+
+// To view the datas we have entered we can give 	objects.all()
+
+// But the return value is not what we expected
+	because the value will be in object and 	<QuerySet [<Question: Question object (1)>]>
+
+// To view the values which we have enter we need to
+	include an __str__ method inside the models	def __str__(self):
+								 return self.question_text
+
+// The above step is mandatory because objects 
+	representations are used throughout Django
+
+// To have date time values we include both timezone
+	from django and datetime from python		import datetime
+							from django.utils import timezone
+
+// We have various keyword arguments that can be used to play with Python interactive Shell
+
+	q = Question(parameters)
+	q.save()
+	q.id
+	q.parameter_1
+	q.parameter_2
+	q.parameter_1 = "Whats up?"
+	q.save()
+	Question.object.all()
+	// AFTER SETTING __STR__ //
+	Question.object.all()			| returns us all the object created
+	Question.object.filter(parameter = val)	| Filters the results
+	Question.object.filter(id = 1)
+	Question.object.get(parameter = val)
+	// WE HAVE PRIMARY-KEY SHORTCUT PK //
+	Question.object.get(pk = 1)
+	q.choice_set.all()
+	q.choice_set.create(choice_text='not much', votes=0)
+	q.choice_set.count()
+	choice.object.filter(parameters)
+	c = q.choice_set.filter(parameters)
+	c.delete()
+
+# Use double underscores to separate relationships.
+# This works as many levels deep as you want; there's no limit.
+# Find all Choices for any question whose pub_date is in this year
+# (reusing the 'current_year' variable we created above).
+
+	Choice.objects.filter(question__pub_date__year=current_year)
+		
+-----------------------------------------------------------------------------------------
+DJANGO ADMIN
+-----------------------------------------------------------------------------------------
+
+/1/ To use Django we need account and so we
+	create one using the superuser		py manage.py createsuperuser
+
+/2/ Now we can run the server and nav to admin	py manage.py runserver
+	 http://127.0.0.1:8000/admin/
+
+/3/ After entering in we can see the data 
+	Django entered but the new app 
+	we created are not visible and to 
+	make it visible we tell the polls 
+	app to be visible this is done in
+	admin.py of the app dir 
+						from django.contrib import admin
+						from .models import Question, Choice
+						admin.site.register(Question)
+						admin.site.register(Choice)
+
+
+-----------------------------------------------------------------------------------------
+TEMPLATES 
+-----------------------------------------------------------------------------------------
+
+/0.1/ To use the template we need to create
+	a template folder in polls dir
+
+/0.2/ Usually Django will look for templates 
+	in subdirectories of INSTALLED APP
+
+/0.3/ To make it more clear we create one more
+	subfolder with the app name and than
+	create a template			polls/templates/polls/index.html
+
+		// ONE OF THE METHOD TO USE TEMPLATES //
+
+/1/ To use this template we need 		from django.utils import HttpResponse
+						from django.template import loader
+
+/2/ Also inside the function of views we 
+	need to use the loader module		template = loader.get_template(file_dir)
+
+/3/ In return statement we give 			return HttpResponse(template.render(context{data},request))
+
+		// OR WE CAN ALSO USE THE OTHER METHOD //
+
+/1/ Shortcut to render the template 		from django.shortcuts import render
+
+/2/ Simply we can return with three arg		return render(request, temp_dir, context {data})
+
+		// TO GET AN 404 WE NEED GIVE TRY EXCEPT RAISE //
+
+/1/ To raise an 404 we can get it from 		from django.http import Http404
+
+/2/ with a raise statement inside the func	raise Http404("NOT FOUND")
+
+		// SHORT WAY OF GIVING 404 IS //
+
+/1/ Shortcut is present from django		from django.shortcuts import get_object_or_404,render
+
+/2/ inside the function we can give 		question = get_object_or_404(Question, pk=question_id)
+
+
+/1/ Remove the hardcoded template values 
+	{{ }}
+
+		// TO MAKE IT MORE CLEAR //
+
+/1/ We should also give the URLpattern a
+	namespace to separate the app url
+	with other app urls			app_name = 'polls'
+						url_patterns = [ ]
+
+-----------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 

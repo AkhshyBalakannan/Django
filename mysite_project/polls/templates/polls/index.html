@@ -1,0 +1,13 @@
+{% if latest_question_list %}
+<ul>
+    {% for question in latest_question_list %}
+    <!-- These lines are to be present in the 4th line -->
+    <!-- <li><a href="/polls/{{ question.id }}/">{{ question.question_text }}</a></li> -->
+    <!-- The above line is a hard coded url line so replaced by below code -->
+    <!-- line below is rewritten as polls:deatil instead of detail bcoz we have named the urlspattern -->
+    <li><a href="{% url 'polls:detail' question.id %}">{{ question.question_text }}</a></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No polls are available.</p>
+{% endif %}

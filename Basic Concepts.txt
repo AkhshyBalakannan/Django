@@ -86,15 +86,81 @@ Project Structure
 ---------------------------------------------------------------------------------------------
 Creating an Application
 	
-	Migrations- This holds another __init__.py file.
-	__init__.py- This is a Python package.
-	admin.py- This lets us make the app modifiable in the admin interface.
-	apps.py- This holds the names of all your applications.
-	models.py- This holds all application models.
-	tests.py- This holds unit tests for the project.
-	views.py- This holds the application views for the project.
+	Migrations	- This holds another __init__.py file.
+	__init__.py	- This is a Python package.
+	admin.py	- This lets us make the app modifiable in the admin interface.
+	apps.py		- This holds the names of all your applications.
+	models.py	- This holds all application models.
+	tests.py	- This holds unit tests for the project.
+	views.py	- This holds the application views for the project.
+
 ----------------------------------------------------------------------------------------------
 In your settings.py, you can add your app name in the INSTALLED_APPS construct-
+----------------------------------------------------------------------------------------------
+Model and API Django 
+
+	This is an file which is created for us by Django
+	where we can alter or create new table in db
+	normally model is a schema or just the name of the column 
+	To create an model in Django everything is subclass of 
+	// django.db.models.Model  //
+	which is present in the Django and to create a class 
+	we import half and the other half is given as inheritance 
+	
+	from django.db import models
+	class Question(models.Model):
+
+There are many key words that is used to create the table name with proper datatype
+
+	All the variables, Table_name is a field which is "instance of Field"
+		CharField for character field
+		CharField requires max_length 
+	Which is not only required for field instance but also for validation purpose
+	Field can also have DEFAULT values that can be set
+	
+	Relationship here is defined using the foreignKey to tell the Django that one table
+	is linked to another table 
+
+Just creating an model is not enough we need to activate the model by including it in the 
+installed app in setting.py
+
+And after that we need to create the migrate file which is done using the syntax 
+	py manage.py makemigrations polls
+
+Once the the migration file is created than we can migrate it using both syntax that is 
+	py manage.py sqlmigrate poll 0001
+
+	py manage.py check
+		This checks the problem in your project without making migration or touching db
+
+	py manage.py migrate
+
+---------------------------------------------------------------------------------------------
+API Interface
+
+This is like an debugging interface mostly used to include data in the databases more likely
+in shell to enter into the shell   py manage.py shell
+
+	This shell is used to create the instance object of the model modify delete data
+
+	q = Question(parameters)
+	This Question is the model we import from the polls.model 
+
+	q.parameter_name = VALUE // To modify data
+
+Here we have a problem to be solved that is the object created are just the objects and not the\
+exact values of the object and so we need to add the __str__ method in the model class return us values
+
+This is important because all the Django will use the object instance all the time\
+
+		def __str__(self):
+        		return self.question_text
+
+# Use double underscores to separate relationships.
+# This works as many levels deep as you want; there's no limit.
+# Find all Choices for any question whose pub_date is in this year
+# (reusing the 'current_year' variable we created above).
+
 ----------------------------------------------------------------------------------------------
 
 Cross Platform
