@@ -1,0 +1,32 @@
+2.1 django-admin startproject
+2.2 django-admin startapp or py manage.py startapp
+2.3 Model and Schema and python UI to work with objects
+2.4 Templating rendering files 
+2.5 Migrations django to know how to interact with database
+2.6 Form and post method
+2.7 static files{% load static %} {% static 'file_dir' %}
+3.1 Middlewares to read
+3.2 Request and response
+HttpRequest.scheme string representing the scheme
+HttpRequest.body will be used when HttpRequest.POST
+HttpRequest.readline() may raise RawPostDataException
+HttpRequest.path
+HttpRequest.path_info
+HttpRequest.encoding
+HttpRequest.content_type
+HttpRequest.content_params dictionary key value in header
+HttpRequest.COOKIES
+HttpRequest.user will trigger AuthenticationMiddleware
+
+3.3 Query set .filter() .exclude() .annotate(count('entry'))
+.entry__count will give you the output
+set an default name num = Count('entry')
+.num will give the output
+.order_by('-pub_date')
+.order_by(?) random ordering
+.order_by() when no need to order 
+QuerySet.ordered can tell you whether
+.reverse()[:5] reverse order last first and so on
+.distinct() Eliminates duplicate rows 
+
+3.4 Filters | {{ var }} {% %}

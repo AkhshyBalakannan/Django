@@ -1,0 +1,82 @@
+Django-admin startproject project_name
+// to start an django project
+
+py manage.py startapp app_name
+or
+django-admin startapp app_name
+// to start an django app
+
+After creating the app you must include it in the setting of project
+appname.apps.AppnameConfig
+
+After that you need to add the url pattern in the project
+path('', include('app_name.urls'))
+
+In the url you must import the views file
+
+After that you should give app_name and the urlpattern=[]
+app_name= 'app_name'
+urlpatterns = [
+path('',views.fun_name, args)
+]
+
+In the view.py file define a func with request argument
+
+to render an file we need template folder 
+
+render takes two minimum args and three args max
+render(request, 'appname/template_name.html')
+render(request, 'appname/template_name.html',{dict_key:dict_value})
+
+We also have an base html template that can be imported in other html 
+to do we use the {% block content %} {% endblock %}
+{% extends 'dir/base.html'%}
+
+To add static files we need to give
+{% load static %}
+
+We also can use the url tag to not hardcode the url inside the rendering files
+we can do this by simply giving them the {% url 'url-name' %}
+
+
+Models is the main file which is used to create the database table
+we define it in the app files with inheritance of models.Model
+calling all the variable with model.Field_name()
+
+To use this in the views we must import the models in the view directory
+
+We should declare the model in the admin page to use it in the admin page
+to do so we simply import and give
+admin.site.register(model_name)
+
+To give this data from the data base we must write the objects code in the views file
+
+content = comment.objects.all()
+
+and this connect can be given to the render as third args
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

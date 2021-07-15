@@ -1,0 +1,10 @@
+body{
+    background-color: rgb(44, 44, 44);
+    color: white;
+}
+.signup-form{
+    margin: 2em 15em;
+    padding: 0px 100px;
+    background-color: rgb(54, 54, 54);
+    
+}
