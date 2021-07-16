@@ -1,0 +1,11 @@
+{% extends 'polls/base.html' %}
+
+{% block content %}
+
+<form action="/polls/create/" method="post">
+    {% csrf_token %}
+    <input type="text" name="question_text">
+    <button type="submit">submit</button>
+</form>
+
+{% endblock content %}

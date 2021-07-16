@@ -72,34 +72,34 @@ MODEL AND API (DATABASE CONNECTION AND CONFIG USING DJANGO API)
 
 /4/ Now to create those model tables in database 	py manage.py migrate
 
-/5/ API Django offers us					py manage.py shell
+/5/ API Django offers us				py manage.py shell
 
-/6/ Inside the API interface we can import the model	from polls.models import choice, question
+/5/ Inside the API interface we can import the model	from polls.models import choice, question
 
-// We can also import timezone from django		from django.utils import timezone
+/5/ We can also import timezone from django		from django.utils import timezone
 
-// All the datas created are by instances and 
+/5/ All the datas created are by instances and 
 	its important to save these instances		q.save()
 
-// Automatic id are created by Django 			q.id
+/5/ Automatic id are created by Django 			q.id
 
-// To view the datas we have entered we can give 	objects.all()
+/5/ To view the datas we have entered we can give 	objects.all()
 
-// But the return value is not what we expected
+/5/ But the return value is not what we expected
 	because the value will be in object and 	<QuerySet [<Question: Question object (1)>]>
 
-// To view the values which we have enter we need to
+/5/ To view the values which we have enter we need to
 	include an __str__ method inside the models	def __str__(self):
 								 return self.question_text
 
-// The above step is mandatory because objects 
+/5/ The above step is mandatory because objects 
 	representations are used throughout Django
 
-// To have date time values we include both timezone
+/5/ To have date time values we include both timezone
 	from django and datetime from python		import datetime
 							from django.utils import timezone
 
-// We have various keyword arguments that can be used to play with Python interactive Shell
+/5/ We have various keyword arguments that can be used to play with Python interactive Shell
 
 	q = Question(parameters)
 	q.save()
@@ -174,7 +174,7 @@ TEMPLATES
 /2/ Also inside the function of views we 
 	need to use the loader module		template = loader.get_template(file_dir)
 
-/3/ In return statement we give 			return HttpResponse(template.render(context{data},request))
+/3/ In return statement we give 		return HttpResponse(template.render(context{data},request))
 
 		// OR WE CAN ALSO USE THE OTHER METHOD //
 
@@ -206,10 +206,28 @@ TEMPLATES
 						url_patterns = [ ]
 
 -----------------------------------------------------------------------------------------
+MIGRATE
+-----------------------------------------------------------------------------------------
+
+// To start with migration you must know what is migrations
+	the answer is it simply tells our database what we need to save in it
+	and when we update the things that we want to save we do it in migrate file
+	and after that we use migrate to store data to the database
 
 
+// To Get an empty migration file we give	py manage.py makemigration --empty app_name
 
+// This above will create an migration file
+	where we need to add stuff in operator	class Migration(migrations.Migration)
+							dependencies=[]
+							operation=[ migrations.RunPython(CallBack Func name)]
 
+// We need to define the function name above
+	class migration with an app arg		def create_func(app, schema_editor):
+							var = app.get_model("appname", "model")
+							schema_editor is for manual SQL insertion
+
+	
 
 
 

@@ -1,3 +1,8 @@
+{% extends "polls/base.html" %}
+
+{% block content %}
+
+{% if choice %}{{ choice }}{% endif %}
 <h1>{{ question.question_text }}</h1>
 
 {% if error_message %}<p><strong>{{ error_message }}</strong></p>{% endif %}
@@ -10,3 +15,4 @@
     {% endfor %}
     <input type="submit" value="Vote">
 </form>
+{% endblock content %}

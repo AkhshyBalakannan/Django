@@ -1,0 +1,7 @@
+<form action="{% url 'polls:author-add' %}" method="post">
+    {% csrf_token %}
+    <input type="text" name="name">
+    <button type="submit">submit</button>
+</form>
+
+<!-- THIS IS PAGE HAS AN ERROR IN THE REDIRECT PATH -->

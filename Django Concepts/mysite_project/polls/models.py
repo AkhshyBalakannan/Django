@@ -4,11 +4,12 @@ from django.utils import timezone
 
 
 class Question(models.Model):
+    question_weight = models.IntegerField(default=50)
     question_text = models.CharField(max_length=200)
     pub_date = models.DateTimeField('date published')
 
     def __str__(self):
-        return self.question_text
+        return f'{self.question_text} {self.question_weight}'
 
     def was_published_recently(self):
         return self.pub_date >= timezone.now() - datetime.timedelta(days=1)
@@ -21,3 +22,18 @@ class Choice(models.Model):
 
     def __str__(self):
         return self.choice_text
+
+
+class Country(models.Model):
+    name = models.CharField(max_length=100)
+    code = models.CharField(max_length=3, null=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Author(models.Model):
+    name = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.name
