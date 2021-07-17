@@ -227,9 +227,419 @@ MIGRATE
 							var = app.get_model("appname", "model")
 							schema_editor is for manual SQL insertion
 
+// We also have RunSQL in the operation to
+	run directly the SQL command		class Migration(migrations.Migration)
+							dependencies=[]
+							operation=[ migrations.RunPython("INSERT INTO musician (name) VALUES ('Reinhardt');")]
+	
+// We also have other method in the RunSQL
+	that is reverse_sql			migrations.RunSQL(
+    						sql=[("INSERT INTO musician (name) VALUES (%s);", ['Reinhardt'])],
+    						reverse_sql=[("DELETE FROM musician where name=%s;", ['Reinhardt'])],
+						)
+
+// We can also make migration directly to 
+	create an field in the db manually	migrations.RunSQL(
+    						"ALTER TABLE musician ADD COLUMN name varchar(255) NOT NULL;",
+						    state_operations=[
+        							migrations.AddField(
+            							'musician',
+            							'name',
+            							models.CharField(max_length=255),
+        							),
+    								],
+						)
+
+---------------------------------------------------------------------------------------------------
+FORM AND CLASS BASED VIEWS
+---------------------------------------------------------------------------------------------------
+
+// Form is like anything that a user tries 
+	to save in the db like name, etc.,	form action={% url 'polls:votes' question.id %}  method=post
+
+// Use generic views: Less code is better	generic.DetailView  	generic.ListView
+
+// Usage of genericViews are by calling them
+	in class and inheritance of generic	class IndexView(generic.ListView):
+
+// Some values are passed defaultly like
+	template_name, variable name in DV	Default template_name = <app name>/<model name>_detail.html
+						Default template_name = <app name>/<model name>_list.html						
+						Default variable in detail = model name in small letter	
+						Default variable in List = modelName_list 				
+	
+// In an ListView we need to return the list
+	by fun get_queryset(self) and so
+	we dont give model we give template	template_name = 'polls/index.html'
+    						context_object_name = 'latest_question_list'
+						
+						def get_queryset(self):
+			        			return Question.objects.all()
+
+// In an DetailView we need to tell django  
+	the model we want and var name		model = Question
+						template_name = 'polls/index.html'
+    						context_object_name = 'latest_question_list'
+
+// We also have other views in django that 
+	from django.views.generic.edit import CreateView, DeleteView, UpdateView
+
+// We simply use this to create update views 	class AuthorCreate(CreateView):
+    							model = Author
+    							fields = ['name']
+
+// We can set custom views in the views.py 
+	we inherit View with customClass	class Set_ques(View):
+
+// And the func inside the custom class
+	to match the GET and POST we give	def get(self, request):
+							pass
+						def post(self, request):
+							pass
+
+-----------------------------------------------------------------------------
+MANAGING STATIC FILES
+-----------------------------------------------------------------------------
+
+// Static files are CSS JS and IMAGES we serve 
+
+// To serve static file we need to create 
+	an static folder and app/file_name	App/static/app_name/file_name
+
+// To use this in template we need to give	{% load static %}
+
+// The href should also be given in link tag	{% static 'path' %}
+
+// Also we need to set some settings		STATICFILES_DIRS = (
+    							os.path.join(BASE_DIR, 'static'),
+						)
+
+// Serving static files in production		Step 1 : django-admin collectstatic
+						Step 2 : django.contrib.staticfiles.storage.StaticFilesStorage
+
+// On the server, run collectstatic to
+	copy all statics into STATIC_ROOT.
+
+// Configure your web server to serve files
+	in STATIC_ROOT under URL STATIC_URL.
+
+----------------------------------------------------------------------------------------
+MIDDLEWARE
+----------------------------------------------------------------------------------------
+
+// Middleware can be kept empty if wanted but strongly recommend using commonMiddleware
+
+// Middleware can either support only synchronous Python (the default), only asynchronous Python, or both.
+
+// Normally the __init__ will only be called once where as the __call__ called onces per request
+
+// Middleware as unused -
+	 when __init__() will raise MiddleWareNotUsed exception 
+		Django will remove from middleware process and log a debug message to django.request
+
+// When we write an custom middleware 
+	we have two func those are		def __init__(get_response) // requires get_response NO args
+						def __call__() // can have args **
+
+// To activate an Middleware we need 
+	to add the name path in settings	MIDDLEWARE =[ path.to.middleware.file ]
+
+
+// three other special methods to class-based:	process_view(request, view_func, view_args, view_kwargs)
+						process_exception(request, exception)
+						process_template_response(request, response)
+
+// Process_view should return either None or
+	an HttpResponse object to carryover 	None - Django will continue processing
+						HttpResponse object - Django won’t bother calling the appropriate view
+						apply response middleware to that HttpResponse and return the result
+
+// Django calls process_exception() when a 
+	view raises an exception. HttpResponse object, the template response and 
+	response middleware will be applied and the resulting response returned to the browser.
+
+// process_template_response() request is an HttpRequest object. response is the TemplateResponse object
+
+
+// Asynchronous support
+	
+	Middleware can support both async and sync operation
+	Default, handles only synchronous requests
+	sync_capable is a boolean indicating Default to true
+	async_capable is a boolean indicating Default to False
+
+// To mark it async we use the decorator	if asyncio.iscoroutinefunction(get_response):
+							async def middleware(request):	
+
+	
+The returned callable must match the sync or async nature of the get_response method. 
+If you have an asynchronous get_response, you must return a coroutine function (async def).
+
+Refer the link for ordering the middleware
+	 https://docs.djangoproject.com/en/3.1/ref/middleware/#middleware-ordering
+
+------------------------------------------------------------------------------------------
+Headers, query strings, cookies and sessions
+------------------------------------------------------------------------------------------
+
+// HttpRequest objects
+	All the attributes should be readonly unless stated
+
+	HttpRequest.Schema	HttpResponse.body (byteString for XML payloads, images)
+	HttpRequest.path ( returns the full path of the request made from )
+							"/minfo/music/bands/the_beatles/"
+	HttpRequest.path_info ( Will return the path alone without portion )
+							"/music/bands/the_beatles/"
+
+	HttpRequest.method (return GET or POST or method )
+	HttpRequest.encoding ( usefull when form data decoding is need when no default encode done )
+	HttpRequest.content_text ( parse from CONTENT_TYPE header )
+	HttpRequest.content_params ( Get the value in dict key:value )
+	HttpRequest.COOKIES ( which contains all the cookies in dict )
+	HttpRequest.FILES ( which is used to access file uploaded )
+		Files will only contain data if the method was POST and form that requested
+		Otherwise it will be blank dict-like object
+
+	HttpRequest.META ( dict contains all available HTTP headers )
+	HttpRequest.header ( {'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_12_6', ...} )
+
+// HttpRequest Attributes
+	
+	HttpRequest.session	From session middleware a readable and writable dict resp current session
+	HttpRequest.site	CurrentSiteMiddleware an instance of site or RequestSite returned as get_current_site()
+	HttpRequest.user	AuthenticationMiddleware an instance of AUTH_USER_MODEL logged_in User
+	
+// HttpRequest Methods
+	
+	HttpRequest.get_port() ( returns the originating port )
+	HttpRequest.get_full_path() ( returns path with appending querystring )
+	HttpRequest.get_full_path_info() ( use the path_info instead of path )
+
+	HttpRequest.get_signed_cookie(key, default=RAISE_ERROR, salt='', max_age=None)
+	HttpRequest.is_secure() ( Returns true if request is secure )
+	HttpRequest.read(size=none)  HttpRequest.readline() HttpRequest.readlines()	
+	
+HttpRequest.__iter__()
+Methods implementing a file-like interface for reading from an HttpRequest instance. This makes it possible to consume an incoming request in a streaming fashion. A common use-case would be to process a big XML payload with an iterative parser without constructing a whole XML tree in memory.
+
+Given this standard interface, an HttpRequest instance can be passed directly to an XML parser such as ElementTree:
+
+import xml.etree.ElementTree as ET
+for element in ET.iterparse(request):
+    process(element)
+
+
+	refer link for more details https://docs.djangoproject.com/en/3.1/ref/request-response/#django.http.HttpRequest.__iter__
+
+
+// QUERYDICT OBJECT 
+
+	This is used to get the query string QueryDict are immutable and if we need to change it 
+	than we need to .copy() it to make it mutable
+
+	QueryDict.__init__(query_string=None, mutable=False, encoding=None)
+		QueryDict('a=1&a=2&c=3')
+		<QueryDict: {'a': ['1', '2'], 'c': ['3']}>
+
+	QueryDict.fromkeys(iterable, value='', mutable=False, encoding=None)
+		QueryDict.fromkeys(['a', 'a', 'b'], value='val')
+		<QueryDict: {'a': ['val', 'val'], 'b': ['val']}>
+
+	QueryDict.__getitem__(key)			returns value of key | KeyError
+	QueryDict.__setitem__(key, value)		only can be used in QueryDict.copy()
+	QueryDict.__contains__(key)			Returns True if present
+	QueryDict.get(key, default=None)
+	QueryDict.setdefault(key, default=None)
+	
+	QueryDict.update(other_dict)
+	Takes either a QueryDict or a dictionary. it appends to the current dictionary items
+		q = QueryDict('a=1', mutable=True)
+		q.update({'a': '2'})
+		q.getlist('a')
+		['1', '2']
+		q['a'] # returns the last
+		'2'
+
+	QueryDict.items()
+		q = QueryDict('a=1&a=2&a=3')
+		list(q.items())
+		[('a', '3')]
+
+	QueryDict.values()
+	Like dict.values(), returns an iterator instead of a view object. For example:
+		q = QueryDict('a=1&a=2&a=3')
+		list(q.values())
+		['3']
+
+In addition, QueryDict has the following methods:
+
+	QueryDict.copy()
+	Returns a copy of the object using copy.deepcopy().
+	
+	QueryDict.getlist(key, default=None)
+	Returns a list of the data with the requested key.
+
+	QueryDict.setlist(key, list_)
+	Sets the given key to list_ (unlike __setitem__()).
+
+	QueryDict.appendlist(key, item)
+	Appends an item to the internal list associated with key.
+	
+	QueryDict.setlistdefault(key, default_list=None)
+	Like setdefault(), except it takes a list of values instead of a single value.
+
+	QueryDict.lists()
+	Like items(), except it includes all values, as a list
+		q = QueryDict('a=1&a=2&a=3')
+		q.lists()
+		[('a', ['1', '2', '3'])]
+
+	QueryDict.pop(key)
+	Returns a list of values for the given key and removes them from the dictionary
+
+	QueryDict.popitem()
+	Removes an arbitrary member of the dictionary returns a two value tuple containing the key and a list of all values for the key. Raises KeyError when called on an empty dictionary. For example:
+
+	QueryDict.dict()
+	Returns a dict representation of QueryDict. 
+
+	QueryDict.urlencode(safe=None)
+	Returns a string of the data in query string format. For example:
+
+// HttpResponse Object
+	
+	Passing Strings
+		we can simply give the HttpResponse('str to be sent')
+
+	Response as a file-like object
+		response = HttpResponse()
+		response.write("<p>lorem ipsum</p>")	
+	
+	Passing Iterators
+		HttpResponse an Iterator rather strings 
+		HttpResponse will consume the iterator immediately stores the content as string
+		Object with a close() method such as files and generator are closed immediately
+TO STOP THIS ACTION WE NEED StreamingHttpResponse
+
+	
+	Setting header fields
+		to set remove a header field in your response
+		response = HttpResponse()
+		response['age'] = 120
+		del response['age']
+
+	Telling the bowser to treat the response as a file attachment
+
+		response = HttpResponse(my_data, content_type='application/vnd.ms-excell')
+		response['Content-Disposition'] = 'attachment; filename="foo.xls"'
+
+// HttpResponse Attributes
+	
+	HttpResponse.content
+	HttpResponse.charset
+	HttpResponse.status_code
+		HTTP status code for the response
+	HtttpResponse.reason_phrase
+		HTTP standard's default reason phrases
+		reason_phrase is determined by status_code
+	HttpResponse.closed usually TRUE for response has been closed
+	HttpResponse.streaming usually FALSE Bcoz middleware takes care beter
+
+// HttpResponse Method
+	
+	HttpResponse.__init__(content=b'', content_type=None, status=200, reason=None, charset=None)
+
+	HttpResponse.__setitem__(header, value)
+	Sets the given header name to the given value. Both header and value should be strings.
+
+	HttpResponse.__delitem__(header)
+	Deletes the header with the given name. Fails silently if the header doesn’t exist. Case-insensitive.
+	
+	HttpResponse.__getitem__(header)
+	Returns the value for the given header name. Case-insensitive.
+
+	HttpResponse.get(header, alternate=None)
+	Returns the value for the given header, or an alternate if the header doesn’t exist.
+
+	HttpResponse.has_header(header)
+	Returns True or False based on a case-insensitive check for a header with the given name.
+
+	HttpResponse.items()
+	Acts like dict.items() for HTTP headers on the response.
+
+	HttpResponse.setdefault(header, value)
+	Sets a header unless it has already been set.
+
+	HttpResponse.set_cookie(key, value='', max_age=None, expires=None, path='/', domain=None, secure=False, httponly=False, samesite=None)
+	Use httponly=True if you want to prevent client-side JavaScript from having access to the cookie.
+	Use samesite='None' (string) to explicitly state that this cookie is sent with all same-site and cross-site requests.
+
+	HttpResponse.delete_cookie(key, path='/', domain=None, samesite=None)
+	Deletes the cookie with the given key. Fails silently if the key doesn’t exist.
+
+	HttpResponse.close()
+	This method is called at the end of the request directly by the WSGI server.
+
+	HttpResponse.write(content)
+	This method makes an HttpResponse instance a file-like object.
+
+	HttpResponse.flush()
+	This method makes an HttpResponse instance a file-like object.
+
+	HttpResponse.tell()
+	This method makes an HttpResponse instance a file-like object.
+
+	HttpResponse.getvalue()
+	Returns the value of HttpResponse.content. This method makes an HttpResponse instance a stream-like object.
+
+	HttpResponse.readable()
+	Always False. This method makes an HttpResponse instance a stream-like object.
+
+	HttpResponse.seekable()
+	Always False. This method makes an HttpResponse instance a stream-like object.
+
+	HttpResponse.writable()
+	Always True. This method makes an HttpResponse instance a stream-like object.
+
+	HttpResponse.writelines(lines)
+	Writes a list of lines to the response. Line separators are not added. This method makes an HttpResponse instance a stream-like object.
 	
 
+// HttpResponse Subclass
+	
+	class HttpResponseRedirect
+	The first argument to the constructor is required – 
+	the path to redirect to. This can be a fully qualified URL (e.g. 'https://www.yahoo.com/search/'), 
+	an absolute path with no domain (e.g. '/search/'), or even a relative path (e.g. 'search/'). 
+	
+This read-only attribute represents the URL the response will redirect to (equivalent to the Location response header).
 
+	class HttpResponsePermanentRedirect
+	Like HttpResponseRedirect, but it returns a permanent redirect (HTTP status code 301) 
+	instead of a “found” redirect (status code 302).
+
+	class HttpResponseNotModified
+	The constructor doesn’t take any arguments and no content should be added to this response. 
+	Use this to designate that a page hasn’t been modified since the user’s last request (status code 304).
+
+	class HttpResponseBadRequest
+	Acts just like HttpResponse but uses a 400 status code.
+
+	class HttpResponseNotFound
+	Acts just like HttpResponse but uses a 404 status code.
+
+	class HttpResponseForbidden
+	Acts just like HttpResponse but uses a 403 status code.
+
+	class HttpResponseNotAllowed
+	Like HttpResponse, but uses a 405 status code. The first argument to the constructor is required: 
+	a list of permitted methods (e.g. ['GET', 'POST']).
+
+	class HttpResponseGone
+	Acts just like HttpResponse but uses a 410 status code.
+
+	class HttpResponseServerError
+	Acts just like HttpResponse but uses a 500 status code.		
 
 
 

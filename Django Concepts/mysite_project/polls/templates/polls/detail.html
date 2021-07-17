@@ -12,6 +12,8 @@
     {% for choice in question.choice_set.all %}
     <input type="radio" name="choice" id="choice{{ forloop.counter }}" value="{{ choice.id }}">
     <label for="choice{{ forloop.counter }}">{{ choice.choice_text }}</label><br>
+    {% empty %} {% comment %} This line will be executed only when no for loop runs {% endcomment%}
+    <li>Sorry no choice present</li>
     {% endfor %}
     <input type="submit" value="Vote">
 </form>

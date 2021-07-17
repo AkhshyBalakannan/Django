@@ -2,12 +2,20 @@
 
 {% block content %}
 <h1>{{ question.question_text }}</h1>
-
+{% autoescape on %}
+<!-- Defaultly on escapes html to turn off please give off or |safe in the data -->
 <ul>
     {% for choice in question.choice_set.all %}
-    <li>{{ choice.choice_text }} -- {{ choice.votes }} vote{{ choice.votes|pluralize }}</li>
+    <li>{{ choice.choice_text }} -- {{ choice.votes|default: 0 }} vote{{ choice.votes|pluralize }}</li>
+    {% empty %}
+    <li>Sorry no choice present</li>
     {% endfor %}
 </ul>
 
 <a href="{% url 'polls:detail' question.id %}">Vote again?</a>
+{% endautoescape %}
+{% load humanize %}
+<h2>this is an custom tag/ filter</h2>
+{% comment %} We also need this tag to be set in the installed app {% endcomment %}
+{{ 45000|intcomma }}
 {% endblock content %}
