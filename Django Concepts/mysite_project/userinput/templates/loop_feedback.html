@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block content %}
+<form action="/userinput/loopfeedback/" method='POST' novalidate>
+    {% csrf_token %}
+    {% for field in form %}
+    <div class="fieldWrapper">
+        {{ field.errors }}
+        {{ field.label_tag }} {{ field }}
+        {% if field.help_text %}
+        <p class="help">{{ field.help_text|safe }}</p>
+        {% endif %}
+    </div>
+    {% endfor %}
+    <div>
+        <button type="submit">
+            Submit
+        </button>
+    </div>
+</form>
+{% endblock content %}

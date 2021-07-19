@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 
 INSTALLED_APPS = [
     'polls.apps.PollsConfig',
+    'userinput.apps.UserinputConfig',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -137,3 +138,36 @@ STATICFILES_DIRS = (
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Using a custom cache backend
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'path.to.backend',
+#     }
+# }
+
+# cache using Memcache
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#         'LOCATION': '127.0.0.1:11211',
+#     }
+# }
+
+# # Memcached is available through a local Unix socket file /tmp/memcached.sock
+# # using the python-memcached binding:
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.MemcachedCache',
+#         'LOCATION': 'unix:/tmp/memcached.sock',
+#     }
+# }
+
+# # When using the pylibmc binding, do not include the unix: / prefix:
+
+# CACHES = {
+#     'default': {
+#         'BACKEND': 'django.core.cache.backends.memcached.PyLibMCCache',
+#         'LOCATION': '/tmp/memcached.sock',
+#     }
+# }

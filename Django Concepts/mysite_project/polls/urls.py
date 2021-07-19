@@ -18,6 +18,7 @@ from . import views
 app_name = 'polls'
 urlpatterns = [
     path('', views.IndexView.as_view(), name='index'),
+    path('cycle', views.tags, name='cycle'),
     path('choice/', views.ViewChoice.as_view(), name='choice_view'),
     path('create/', views.Set_ques.as_view(), name='create_question'),
     path('<int:pk>/', views.DetailView.as_view(), name='detail'),

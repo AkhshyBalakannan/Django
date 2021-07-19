@@ -13,11 +13,13 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django import urls
 from django.contrib import admin
 from django.urls import include, path
 from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 
 urlpatterns = [
     path('polls/', include('polls.urls')),
+    path('userinput/', include('userinput.urls')),
     path('admin/', admin.site.urls),
 ] + staticfiles_urlpatterns()

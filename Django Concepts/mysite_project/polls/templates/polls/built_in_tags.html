@@ -1,0 +1,132 @@
+{% extends 'base.html' %}
+{% block content %}
+{% comment %}
+{% load somelibrary package.otherlibrary %}
+
+This CYCLE is written using simple manner
+This should be for loop only because cycle will be
+{% endcomment %}
+<p>{% cycle 'First Hey' 'Second Hey' 'Third Hey' 'Forth Hey' %}</p>
+<p>{% cycle 'First Hey' 'Second Hey' 'Third Hey' 'Forth Hey' %}</p>
+<p>{% cycle 'First Hey' 'Second Hey' 'Third Hey' 'Forth Hey' %}</p>
+<p>{% cycle 'First Hey' 'Second Hey' 'Third Hey' 'Forth Hey' %}</p>
+{% with total=business.employees.count %}
+{{ total }} employee{{ total|pluralize }}
+{% endwith %}
+
+{{ value|addslashes }}
+{{ value|capfirst }}
+{{ value|center:"15" }}
+
+{{ value|date:"D d M Y" }}
+
+{{ value|default_if_none:"nothing" }}
+
+{{ value|dictsort:"name" }}
+
+{{ value|divisibleby:"3" }}
+
+{{ value|filesizeformat }}
+
+{{ value|iriencode }}
+
+"{{ value|ljust:"10" }}"
+
+{{ value|make_list }}
+
+{{ value|phone2numeric }}
+
+{{ value|slugify }}
+
+{{ value|striptags }}
+
+{{ value|time:"H:i" }}
+
+{{ value|title }}
+{% comment %}
+If value is "my FIRST post", the output will be "My First Post".
+{% endcomment %}
+
+{{ value|wordcount }}
+
+{{ value|wordwrap:5 }}
+
+{{ value|yesno:"yeah,no,maybe" }}
+
+
+
+
+
+{% comment %}
+This CYCLE is written using as
+{% endcomment %}
+{% cycle 'First Hey' 'Second Hey' 'Third Hey' 'Forth Hey' as row_hey %}
+<p>{% cycle row_hey %}</p>
+<p>{% cycle row_hey %}</p>
+<p>{% cycle row_hey %}</p>
+<p>{% cycle row_hey %}</p>
+{% lorem 3 p %}
+{% lorem 2 w random %}
+
+It is the {% now "jS \o\f F" %}
+
+{% spaceless %}
+<p>
+    <a href="foo/">Foo</a>
+</p>
+{% endspaceless %}
+
+
+{% firstof var1 var2|safe var3 "<strong>fallback value</strong>"|safe %}
+{% endblock content %}
+
+{% comment %}
+{% if athlete_list and coach_list %}
+Both athletes and coaches are available.
+{% endif %}
+
+{% if not athlete_list %}
+There are no athletes.
+{% endif %}
+
+{% if athlete_list or coach_list %}
+There are some athletes or some coaches.
+{% endif %}
+
+{% if not athlete_list or coach_list %}
+There are no athletes or there are some coaches.
+{% endif %}
+
+{% if athlete_list and not coach_list %}
+There are some athletes and absolutely no coaches.
+{% endif %}
+
+{% if somevar is True %}
+This appears if and only if somevar is True.
+{% endif %}
+
+{% if somevar is None %}
+This appears if somevar is None, or if somevar is not found in the context.
+{% endif %}
+
+{% if somevar is not True %}
+This appears if somevar is not True, or if somevar is not found in the
+context.
+{% endif %}
+
+{% if somevar is not None %}
+This appears if and only if somevar is not None.
+{% endif %}
+
+{% if a == b or c == d and e %}
+
+{% resetcycle %}
+
+<h1>Archive for {{ year }}</h1>
+
+{% for date in days %}
+{% ifchanged %}<h3>{{ date|date:"F" }}</h3>{% endifchanged %}
+<a href="{{ date|date:" M/d"|lower }}/">{{ date|date:"j" }}</a>
+{% endfor %}
+
+{% endcomment %}

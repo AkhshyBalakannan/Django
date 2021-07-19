@@ -5,7 +5,25 @@
 2.5 Migrations django to know how to interact with database
 2.6 Form and post method
 2.7 static files{% load static %} {% static 'file_dir' %}
-3.1 Middlewares to read
+3.1 Middlewares 
+https://docs.djangoproject.com/en/3.1/ref/middleware/
+cache middleware
+class UpdateCacheMiddleware
+class FetchFromCacheMiddleware
+
+many ways to set cache the most common and fastest way is memcache
+all data is stored directly in the mem
+
+we need memcache binding to be installed those are
+python-memcached and pylibmc
+
+
+
+
+
+
+
+
 3.2 Request and response
 HttpRequest.scheme string representing the scheme
 HttpRequest.body will be used when HttpRequest.POST
@@ -28,6 +46,63 @@ set an default name num = Count('entry')
 QuerySet.ordered can tell you whether
 .reverse()[:5] reverse order last first and so on
 .distinct() Eliminates duplicate rows 
+select_for_update()¶
+select_for_update(nowait=False, skip_locked=False, of=())
+
+# When calling save() for instances with deferred fields,
+# only the loaded fields will be saved.
+# Load all fields immediately.
+# my_queryset.defer(None)
+
+
+# Since defer() acts incrementally(adding fields to the deferred list),
+# you can combine calls to only() and defer() and things will behave logically:
+
+# Final result is that everything except "headline" is deferred.
+# Entry.objects.only("headline", "body").defer("body")
+
+
+# entries = Entry.objects.select_for_update().filter(author=request.user)
+# with transaction.atomic():
+#     for entry in entries:
+#         ...
+
+# Final result loads headline and body immediately (only() replaces any
+# existing set of fields).
+# Entry.objects.defer("body").only("headline", "body")
+
+# qs1.union(qs2, qs3)
+# qs1.intersection(qs2, qs3)
+# qs1.difference(qs2, qs3)
+
+
+# Restaurant.objects.prefetch_related('pizzas__toppings')
+
+# This will prefetch all pizzas belonging to restaurants,
+# and all toppings belonging to those pizzas.
+# This will result in a total of 3 database queries - one for the restaurants,
+# one for the pizzas, and one for the toppings.
+
+AND (&)
+Combines two QuerySets using the SQL AND operator.
+
+Model.objects.filter(x=1) & Model.objects.filter(y=2)
+Model.objects.filter(x=1, y=2)
+from django.db.models import Q
+Model.objects.filter(Q(x=1) & Q(y=2))
+
+SELECT ... WHERE x=1 AND y=2
+
+OR (|)
+Combines two QuerySets using the SQL OR operator.
+
+Model.objects.filter(x=1) | Model.objects.filter(y=2)
+from django.db.models import Q
+Model.objects.filter(Q(x=1) | Q(y=2))
+
+SELECT ... WHERE x=1 OR y=2
+
+
 
 3.4 Filters | {{ var }} {% %}
 3.5 build in templates
