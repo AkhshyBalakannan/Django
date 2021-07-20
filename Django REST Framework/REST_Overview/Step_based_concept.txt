@@ -1,0 +1,427 @@
+SERIALIZATION
+
+Serialization is the process of converting an object into stream
+of bytes to store the object or transmit it to memory, a databases
+
+Its main purpose is to save the state of an object in order to recreate it when
+needed. the reverse is called deserialiazation
+
+Django's Serialization framework provides a mechanism for "translating" Django
+models into other formats. It is possible that serialization can handle any type
+
+-------------------------------------------------------------------------------
+Setting up a new Environment
+--------------------------------------------------------------------------------
+To install venv we give		python -m venv venv
+
+To activate it we give		venv\Scripts\activate.bat
+
+Required packages are		pip install django djangorestframework pygments
+
+---------------------------------------------------------------------------
+Steps To create REST FRAMEWORK T-1
+---------------------------------------------------------------------------
+
+// First step is to start an 
+	project			django-admin startproject tutorial
+				cd tutorial
+
+// Next we need an app 		python manage.py startapp snippets
+
+// Once after installing the
+	project and app we need to add it in the settings.py
+		INSTALLED_APPS = [
+    			...
+    			'rest_framework',
+    			'snippets.apps.SnippetsConfig',
+		]
+
+// Creating model to save data in the db
+
+// Make migration to make 
+	effects on db		python manage.py makemigrations snippets
+				python manage.py migrate
+
+// Create a Serializer class in serializer.py
+	Normally the class should contain two function
+	create and update which take two and three args resp.
+	
+	from rest_framework import serializers
+	class SnippetSerializier(serializers.Serializer):
+		title = serializers.CharField(required=False, allow_blank=True, max_length=100) 
+		...
+		def create(self, validated_data):
+			return Snippet.objects.create(**validated_data)
+
+		def update(self, instance, validated_data):
+			instance.title = validated_data.get('title', instance.title)		
+			...
+			instance.save()
+			return instance
+
+// Even if are saving the instance in the serialization class
+	when we define value we must give serializer.save() to save it to db
+
+// Now to work with the serializer in shell we simply enter into shell
+
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+	
+	snippet = Snippet(code = 'var = "Hello"\n')
+	snippet.save()
+
+	snippet = Snippet(code = 'print("Hello world")\n')
+	snippet.save()
+
+	serializer = SnippetSerializer(snippet)
+	serializer.data
+	# {'title': '','code':'print("Hello World")'}
+	
+We would need the value to be changed into python native datatype and so we use JSONRenderer
+
+	content = JSONRenderer().render(serializer.data)
+	content
+	# b'{"title":"","code":"print(\\"Hello World\\")\\n"}
+
+We may also recieve serialized value which we need to deserialize and to do 
+	
+	import io
+	stream = io.BytesIO(content)
+	data = JSONParser().parse(Stream)
+
+	now we can check data validation and can use it to store data
+
+	serializer = SnippetSerializer(data=data)
+	serializer.is_valid()
+	# true
+	serializer.validated_data
+	# OrderDict({('title',''),('code','print("Hello World")')})
+	serializer.save()
+	# <Snippet: Snippet Object>
+
+Simplier we have given a single data to the serializer to parser it till now
+
+we can also give multiple value to parser or to get value using the Queryset also
+
+	serializer = SnippetSerializer(Snippet.objects.all(), many=True)
+	serializer.data
+	# All the value will be stored in [PrderDict([])]
+
+------------------------------------------------------------------------------
+
+All the above things we did were all basic from scratch which we have wrote
+
+But Django has already made them ready for us to work with
+
+We simply need to inherit the modelSerializers from Django 
+This is so similar has how we use the Form and ModelForm class of django
+
+here we have already inherit the Serializer now we will change it to ModelSerializer
+
+// All the codes in the serializer that is separate function inside the class	
+	def create() and def update() can be replaced with CLASS META
+
+	class SnippetSerializer(serializers.ModelSerializer):
+    		class Meta:
+        		model = Snippet
+        		fields = ['title', 'code']
+
+// All that need to create an serializer is these four lines of code
+	which will create the basic two func create and update for us
+
+// To check what it will create or the instance of the class we can
+	use the repr to print it in the REPL to use enter py manage.py shell
+		
+		from snippets.serializers import SnippetSerializer
+		serializer = SnippetSerializer()
+		print(repr(serializer))
+		# will produce the fields in the class that is created for us
+
+------------------------------------------------------------------------------
+Writing Regular Django views using our Serializer
+------------------------------------------------------------------------------
+
+// Common include we use 
+
+	from django.http import HttpResponse, JsonResponse
+	from django.views.decorators.csrf import csrf_exempt
+	from rest_framework.parsers import JSONParser
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+
+	@csrf_exempt
+	def snippet_list(request):
+		'''List all code snippets'''
+		if request.method == 'GET':
+			snippets = Snippet.object.all()
+			serializer = SnippetSerializer(snippets, many=True)
+			return JsonResponse(serializer.data, safe=False)
+
+		elif request.method == 'POST':
+			data = JSONParser().parse(request)
+			serializer = SnippetSerializer(data=data)
+			if serializer.is_valid():
+				serializer.save()
+				return JsonResponse(serializer.data, status=201)
+			return JsonResponse(serializer.errors, status=400)
+
+	@csrf_exempt
+	def snippet_detail(request, pk):
+    		"""
+    		Retrieve, update or delete a code snippet.
+    		"""
+    		try:
+        		snippet = Snippet.objects.get(pk=pk)
+    		except Snippet.DoesNotExist:
+        		return HttpResponse(status=404)
+
+    		if request.method == 'GET':
+        		serializer = SnippetSerializer(snippet)
+        		return JsonResponse(serializer.data)
+
+    		elif request.method == 'PUT':
+        		data = JSONParser().parse(request)
+        		serializer = SnippetSerializer(snippet, data=data)
+        		if serializer.is_valid():
+            			serializer.save()
+            			return JsonResponse(serializer.data)
+        	return JsonResponse(serializer.errors, status=400)
+
+    		elif request.method == 'DELETE':
+        		snippet.delete()
+        		return HttpResponse(status=204)
+
+// After the views is defined we need to go url and define the routes for the views
+
+	 urlpatterns = [	
+		path('snippets/', views.snippet_list),
+    		path('snippets/<int:pk>/', views.snippet_detail),
+	]
+
+-----------------------------------------------------------------------------------
+
+Once after we finish these steps we are ready to check the api from terminal 
+	using the http
+	pip install http
+	
+	py manage.py shell
+	>>> http http://127.0.0.1:8000/snippets/
+	# will return us all the data in list
+	>>> http http://127.0.0.1:8000/snippets/1/
+	# will return us detail data of id=1
+
+------------------------------------------------------------------------------------
+REQUEST AND RESPONSE T-2
+------------------------------------------------------------------------------------
+
+REQUEST OBJECT 
+--------------
+	REST_framework gives Request is an extends of httpRequest which provides 
+	more flexibility but the core functionality is request.data simple to request.post
+
+request.POST  # Only handles form data.  Only works for 'POST' method.
+request.data  # Handles arbitrary data.  Works for 'POST', 'PUT' and 'PATCH' methods.
+
+
+RESPONSE OBJECT
+---------------
+	REST_framework gives Response which is an extends of TemplateResponse that takes
+	unrendered content and uses content negotiations
+
+return Response(data)  # Renders to content type as requested by the client.
+
+
+STATUS CODE
+-----------
+	Using numeric status code are little confussing to read it directly and so 
+	REST framework provides more explicit identifiers for each status code
+	
+	status = HTTP_400_BAD_REQUEST
+
+
+WRAPPING API VIEWS
+------------------
+	REST framework provides two wrappers you can use to write API views.
+
+		The @api_view decorator for working with function based views.
+		The APIView class for working with class-based views.
+	
+	These wrappers provide a few bits of functionality such as making sure you
+	receive Request instances in your view, and adding context to Response objects 
+	so that content negotiation can be performed.
+
+	The wrappers also provide behaviour such as returning 405 Method 
+	Not Allowed responses when appropriate, and handling any ParseError exceptions
+	that occur when accessing request.data with malformed input.
+
+	 
+------------------------------------------------------------------------------------
+
+// Now lets change the data we have done till in the views.py
+
+// We need these import to make our view work 
+	from rest_framework import status
+	from rest_framework.decorators import api_view	
+	...
+
+	@api_view(['GET', 'POST'])
+	def snippet_list(request):
+    		"""
+    		List all code snippets, or create a new snippet.
+    		"""
+    	if request.method == 'GET':
+        	snippets = Snippet.objects.all()
+        	serializer = SnippetSerializer(snippets, many=True)
+        	return Response(serializer.data)
+
+    	elif request.method == 'POST':
+        	serializer = SnippetSerializer(data=request.data)
+        	if serializer.is_valid():
+            		serializer.save()
+           		return Response(serializer.data, status=status.HTTP_201_CREATED)
+        	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+// In the above code you can see that we have used the wrapper function
+	and so we have changed the Jsonresponse to Response which will negotiate o/p
+
+	@api_view(['GET', 'PUT', 'DELETE'])
+	def snippet_detail(request, pk):
+		try:
+        		snippet = Snippet.objects.get(pk=pk)
+    		except Snippet.DoesNotExist:
+        		return Response(status=status.HTTP_404_NOT_FOUND)
+
+		 if request.method == 'GET':
+        		serializer = SnippetSerializer(snippet)
+        		return Response(serializer.data)
+
+    		elif request.method == 'PUT':
+        		serializer = SnippetSerializer(snippet, data=request.data)
+        		if serializer.is_valid():
+            			serializer.save()
+            			return Response(serializer.data)
+        		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    		elif request.method == 'DELETE':
+        		snippet.delete()
+        		return Response(status=status.HTTP_204_NO_CONTENT)
+	
+Notice that we're no longer explicitly tying our requests or responses to a given 
+content type. request.data can handle incoming json requests, but it can also handle 
+other formats. Similarly we're returning response objects with data, but allowing REST 
+framework to render the response into the correct content type for us.
+
+------------------------------------------------------------------------------------------
+
+Optional Features which we are seeing here is FORMAT SUFFIXES
+
+To take advantage of the fact that our responses are no longer hardwired 
+to a single content type let's add support for format suffixes to our API endpoints. 
+Using format suffixes gives us URLs that explicitly refer to a given format, and means 
+our API will be able to handle URLs such as http://example.com/api/items/4.json.
+
+which will render us the Json Response
+
+
+	def snippet_list(request, format=None):
+		pass
+
+	def snippet_detail(request, pk, format=None):
+		pass
+
+Now update the snippets/urls.py file slightly, to append a set of format_suffix_patterns in addition to the existing URLs.
+
+from rest_framework.urlpatterns import format_suffix_patterns
+urlpatterns = format_suffix_patterns(urlpatterns)
+
+
+// Now all is done we can now request the server we have created by using the http in shell
+
+// Enter into shell py manage.py shell
+
+We can control the format of the response that we get back, either by using the Accept header:
+	http http://127.0.0.1:8000/snippets/ Accept:application/json  # Request JSON
+	http http://127.0.0.1:8000/snippets/ Accept:text/html         # Request HTML
+
+Or by appending a format suffix:
+	http http://127.0.0.1:8000/snippets.json  # JSON suffix
+	http http://127.0.0.1:8000/snippets.api   # Browsable API suffix
+
+-------------------------------------------------------------------------------------------
+CLASS BASED VIEWS T-3
+-------------------------------------------------------------------------------------------
+
+We can also write our API views using class-based views, rather than function based views. 
+As we'll see this is a powerful pattern that allows us to reuse common functionality, 
+and helps us keep our code DRY.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

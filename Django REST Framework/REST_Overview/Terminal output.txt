@@ -1,0 +1,43 @@
+>>> from snippets.models import Snippet
+>>> from snippets.serializers import SnippetSerializer
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+ModuleNotFoundError: No module named 'snippets.serializers'
+>>> from rest_framework.renderers import JSONRenderer
+>>> from rest_framework.parsers import JSONParser
+>>> from snippets.serializers import SnippetSerializer
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+ModuleNotFoundError: No module named 'snippets.serializers'
+>>> from snippets.serializers import SnippetSerializer
+>>> snippet = Snippet(code='var = "Hello"\n')
+>>> snippet.save()
+>>> snippet = Snippet(code='print("Hello World!")\n')
+>>> snippet.save()
+>>> serializer = SnippetSerializer(snippet)
+>>> serializer.data
+{'id': 2, 'title': '', 'code': 'print("Hello World!")\n', 'linenos': False, 'language': 'python', 'style': 'friendly'}
+>>> content = JSONRender().render(serializer.data)
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+NameError: name 'JSONRender' is not defined
+>>> content = JSONRenderer().render(serializer.data)
+>>> content
+b'{"id":2,"title":"","code":"print(\\"Hello World!\\")\\n","linenos":false,"language":"python","style":"friendly"}'
+>>> import io
+>>> stream = io.BytesIO(content)
+>>> data = JSONParser().parse(stream)
+>>> serializer = SnippetSerializer(data=data)
+>>> serializer.is_valid()
+True
+>>> Serializer.validated_data
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+NameError: name 'Serializer' is not defined
+>>> serializer.validated_data
+OrderedDict([('title', ''), ('code', 'print("Hello World!")'), ('linenos', False), ('language', 'python'), ('style', 'friendly')])
+>>> serializer.save()
+<Snippet: Snippet object (3)>
+>>> serializer = SnippetSerializer(Snippet.objects.all(), many=True)
+>>> serializer.data
+[OrderedDict([('id', 1), ('title', ''), ('code', 'var = "Hello"\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 2), ('title', ''), ('code', 'print("Hello World!")\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 3), ('title', ''), ('code', 'print("Hello World!")'), ('linenos', False), ('language', 'python'), ('style', 'friendly')])]
