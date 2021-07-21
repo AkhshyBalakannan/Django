@@ -11,7 +11,13 @@ from django.http import Http404
 from rest_framework.views import APIView
 from rest_framework import mixins
 from rest_framework import generics
+from django.contrib.auth.models import User
+from snippets.serializers import UserSerializer
+from rest_framework import permissions
+from snippets.permissions import IsOwnerOrReadOnly
 
+# ------------------------------------------------------------------------------------------
+# List view
 
 # REST framework provides two wrappers you can use to write API views.
 # The @api_view decorator for working with function based views.
@@ -91,9 +97,32 @@ from rest_framework import generics
 
 
 # USING GENERIC CLASS WE CAN CHANGE THE CODE STILL SMALL
+# class SnippetList(generics.ListCreateAPIView):
+#     queryset = Snippet.objects.all()
+#     serializer_class = SnippetSerializer
+
+# from rest_framework import permissions
+# This is class is for authenticating the user with snippets
 class SnippetList(generics.ListCreateAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+# from snippets.serializers import UserSerializer
+# from django.contrib.auth.models import User
+# from rest_framework import permissions
+# This is class is for authenticating the user with snippets
+class UserList(generics.ListAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
+
+# ---------------------------------------------------------------------------
+# Detail view
 
 # The below code is the basic stepup of the detail snippet function
 # where no api wrapper is used and explicitly set the output value as JSON
@@ -194,11 +223,31 @@ class SnippetList(generics.ListCreateAPIView):
 #         snippet.delete()
 #         return Response(status=status.HTTP_204_NO_CONTENT)
 
+# USING GENERIC CLASS WE CAN CHANGE THE CODE STILL SMALL
+# class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
+#     queryset = Snippet.objects.all()
+#     serializer_class = SnippetSerializer
+
 
 # USING GENERIC CLASS WE CAN CHANGE THE CODE STILL SMALL
+# from rest_framework import permissions
+# from snippets.permissions import IsOwnerOrReadOnly
+# This is class is for authenticating the user with snippets
 class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
     queryset = Snippet.objects.all()
     serializer_class = SnippetSerializer
+    # permission_classes = [permissions.IsAuthenticatedOrReadOnly] This is for common auth or readonly
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+    # this above line is to give access for owner or readonly
+
+
+# from snippets.serializers import UserSerializer
+# from django.contrib.auth.models import User
+class UserDetail(generics.RetrieveAPIView):
+    queryset = User.objects.all()
+    serializer_class = UserSerializer
+
 
 # ----------------------------------------------------------------------------------
 # USING MIXINS WE CHANGE OUR CODE STILL SMALL

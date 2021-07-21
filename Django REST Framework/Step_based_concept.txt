@@ -1,0 +1,987 @@
+SERIALIZATION
+
+Serialization is the process of converting an object into stream
+of bytes to store the object or transmit it to memory, a databases
+
+Its main purpose is to save the state of an object in order to recreate it when
+needed. the reverse is called deserialiazation
+
+Django's Serialization framework provides a mechanism for "translating" Django
+models into other formats. It is possible that serialization can handle any type
+
+-------------------------------------------------------------------------------
+Setting up a new Environment
+--------------------------------------------------------------------------------
+To install venv we give		python -m venv venv
+
+To activate it we give		venv\Scripts\activate.bat
+
+Required packages are		pip install django djangorestframework pygments
+
+---------------------------------------------------------------------------
+Steps To create REST FRAMEWORK T-1
+---------------------------------------------------------------------------
+
+// First step is to start an 
+	project			django-admin startproject tutorial
+				cd tutorial
+
+// Next we need an app 		python manage.py startapp snippets
+
+// Once after installing the
+	project and app we need to add it in the settings.py
+		INSTALLED_APPS = [
+    			...
+    			'rest_framework',
+    			'snippets.apps.SnippetsConfig',
+		]
+
+// Creating model to save data in the db
+
+// Make migration to make 
+	effects on db		python manage.py makemigrations snippets
+				python manage.py migrate
+
+// Create a Serializer class in serializer.py
+	Normally the class should contain two function
+	create and update which take two and three args resp.
+	
+	from rest_framework import serializers
+	class SnippetSerializier(serializers.Serializer):
+		title = serializers.CharField(required=False, allow_blank=True, max_length=100) 
+		...
+		def create(self, validated_data):
+			return Snippet.objects.create(**validated_data)
+
+		def update(self, instance, validated_data):
+			instance.title = validated_data.get('title', instance.title)		
+			...
+			instance.save()
+			return instance
+
+// Even if are saving the instance in the serialization class
+	when we define value we must give serializer.save() to save it to db
+
+// Now to work with the serializer in shell we simply enter into shell
+
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+	
+	snippet = Snippet(code = 'var = "Hello"\n')
+	snippet.save()
+
+	snippet = Snippet(code = 'print("Hello world")\n')
+	snippet.save()
+
+	serializer = SnippetSerializer(snippet)
+	serializer.data
+	# {'title': '','code':'print("Hello World")'}
+	
+We would need the value to be changed into python native datatype and so we use JSONRenderer
+
+	content = JSONRenderer().render(serializer.data)
+	content
+	# b'{"title":"","code":"print(\\"Hello World\\")\\n"}
+
+We may also recieve serialized value which we need to deserialize and to do 
+	
+	import io
+	stream = io.BytesIO(content)
+	data = JSONParser().parse(Stream)
+
+	now we can check data validation and can use it to store data
+
+	serializer = SnippetSerializer(data=data)
+	serializer.is_valid()
+	# true
+	serializer.validated_data
+	# OrderDict({('title',''),('code','print("Hello World")')})
+	serializer.save()
+	# <Snippet: Snippet Object>
+
+Simplier we have given a single data to the serializer to parser it till now
+
+we can also give multiple value to parser or to get value using the Queryset also
+
+	serializer = SnippetSerializer(Snippet.objects.all(), many=True)
+	serializer.data
+	# All the value will be stored in [PrderDict([])]
+
+------------------------------------------------------------------------------
+
+All the above things we did were all basic from scratch which we have wrote
+
+But Django has already made them ready for us to work with
+
+We simply need to inherit the modelSerializers from Django 
+This is so similar has how we use the Form and ModelForm class of django
+
+here we have already inherit the Serializer now we will change it to ModelSerializer
+
+// All the codes in the serializer that is separate function inside the class	
+	def create() and def update() can be replaced with CLASS META
+
+	class SnippetSerializer(serializers.ModelSerializer):
+    		class Meta:
+        		model = Snippet
+        		fields = ['title', 'code']
+
+// All that need to create an serializer is these four lines of code
+	which will create the basic two func create and update for us
+
+// To check what it will create or the instance of the class we can
+	use the repr to print it in the REPL to use enter py manage.py shell
+		
+		from snippets.serializers import SnippetSerializer
+		serializer = SnippetSerializer()
+		print(repr(serializer))
+		# will produce the fields in the class that is created for us
+
+------------------------------------------------------------------------------
+Writing Regular Django views using our Serializer
+------------------------------------------------------------------------------
+
+// Common include we use 
+
+	from django.http import HttpResponse, JsonResponse
+	from django.views.decorators.csrf import csrf_exempt
+	from rest_framework.parsers import JSONParser
+	from snippets.models import Snippet
+	from snippets.serializers import SnippetSerializer
+
+	@csrf_exempt
+	def snippet_list(request):
+		'''List all code snippets'''
+		if request.method == 'GET':
+			snippets = Snippet.object.all()
+			serializer = SnippetSerializer(snippets, many=True)
+			return JsonResponse(serializer.data, safe=False)
+
+		elif request.method == 'POST':
+			data = JSONParser().parse(request)
+			serializer = SnippetSerializer(data=data)
+			if serializer.is_valid():
+				serializer.save()
+				return JsonResponse(serializer.data, status=201)
+			return JsonResponse(serializer.errors, status=400)
+
+	@csrf_exempt
+	def snippet_detail(request, pk):
+    		"""
+    		Retrieve, update or delete a code snippet.
+    		"""
+    		try:
+        		snippet = Snippet.objects.get(pk=pk)
+    		except Snippet.DoesNotExist:
+        		return HttpResponse(status=404)
+
+    		if request.method == 'GET':
+        		serializer = SnippetSerializer(snippet)
+        		return JsonResponse(serializer.data)
+
+    		elif request.method == 'PUT':
+        		data = JSONParser().parse(request)
+        		serializer = SnippetSerializer(snippet, data=data)
+        		if serializer.is_valid():
+            			serializer.save()
+            			return JsonResponse(serializer.data)
+        	return JsonResponse(serializer.errors, status=400)
+
+    		elif request.method == 'DELETE':
+        		snippet.delete()
+        		return HttpResponse(status=204)
+
+// After the views is defined we need to go url and define the routes for the views
+
+	 urlpatterns = [	
+		path('snippets/', views.snippet_list),
+    		path('snippets/<int:pk>/', views.snippet_detail),
+	]
+
+-----------------------------------------------------------------------------------
+
+Once after we finish these steps we are ready to check the api from terminal 
+	using the http
+	pip install http
+	
+	py manage.py shell
+	>>> http http://127.0.0.1:8000/snippets/
+	# will return us all the data in list
+	>>> http http://127.0.0.1:8000/snippets/1/
+	# will return us detail data of id=1
+
+------------------------------------------------------------------------------------
+REQUEST AND RESPONSE T-2
+------------------------------------------------------------------------------------
+
+REQUEST OBJECT 
+--------------
+	REST_framework gives Request is an extends of httpRequest which provides 
+	more flexibility but the core functionality is request.data simple to request.post
+
+request.POST  # Only handles form data.  Only works for 'POST' method.
+request.data  # Handles arbitrary data.  Works for 'POST', 'PUT' and 'PATCH' methods.
+
+
+RESPONSE OBJECT
+---------------
+	REST_framework gives Response which is an extends of TemplateResponse that takes
+	unrendered content and uses content negotiations
+
+return Response(data)  # Renders to content type as requested by the client.
+
+
+STATUS CODE
+-----------
+	Using numeric status code are little confussing to read it directly and so 
+	REST framework provides more explicit identifiers for each status code
+	
+	status = HTTP_400_BAD_REQUEST
+
+
+WRAPPING API VIEWS
+------------------
+	REST framework provides two wrappers you can use to write API views.
+
+		The @api_view decorator for working with function based views.
+		The APIView class for working with class-based views.
+	
+	These wrappers provide a few bits of functionality such as making sure you
+	receive Request instances in your view, and adding context to Response objects 
+	so that content negotiation can be performed.
+
+	The wrappers also provide behaviour such as returning 405 Method 
+	Not Allowed responses when appropriate, and handling any ParseError exceptions
+	that occur when accessing request.data with malformed input.
+
+	 
+------------------------------------------------------------------------------------
+
+// Now lets change the data we have done till in the views.py
+
+// We need these import to make our view work 
+	from rest_framework import status
+	from rest_framework.decorators import api_view	
+	...
+
+	@api_view(['GET', 'POST'])
+	def snippet_list(request):
+    		"""
+    		List all code snippets, or create a new snippet.
+    		"""
+    	if request.method == 'GET':
+        	snippets = Snippet.objects.all()
+        	serializer = SnippetSerializer(snippets, many=True)
+        	return Response(serializer.data)
+
+    	elif request.method == 'POST':
+        	serializer = SnippetSerializer(data=request.data)
+        	if serializer.is_valid():
+            		serializer.save()
+           		return Response(serializer.data, status=status.HTTP_201_CREATED)
+        	return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+	
+// In the above code you can see that we have used the wrapper function
+	and so we have changed the Jsonresponse to Response which will negotiate o/p
+
+	@api_view(['GET', 'PUT', 'DELETE'])
+	def snippet_detail(request, pk):
+		try:
+        		snippet = Snippet.objects.get(pk=pk)
+    		except Snippet.DoesNotExist:
+        		return Response(status=status.HTTP_404_NOT_FOUND)
+
+		 if request.method == 'GET':
+        		serializer = SnippetSerializer(snippet)
+        		return Response(serializer.data)
+
+    		elif request.method == 'PUT':
+        		serializer = SnippetSerializer(snippet, data=request.data)
+        		if serializer.is_valid():
+            			serializer.save()
+            			return Response(serializer.data)
+        		return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    		elif request.method == 'DELETE':
+        		snippet.delete()
+        		return Response(status=status.HTTP_204_NO_CONTENT)
+	
+Notice that we're no longer explicitly tying our requests or responses to a given 
+content type. request.data can handle incoming json requests, but it can also handle 
+other formats. Similarly we're returning response objects with data, but allowing REST 
+framework to render the response into the correct content type for us.
+
+------------------------------------------------------------------------------------------
+
+Optional Features which we are seeing here is FORMAT SUFFIXES
+
+To take advantage of the fact that our responses are no longer hardwired 
+to a single content type let's add support for format suffixes to our API endpoints. 
+Using format suffixes gives us URLs that explicitly refer to a given format, and means 
+our API will be able to handle URLs such as http://example.com/api/items/4.json.
+
+which will render us the Json Response
+
+
+	def snippet_list(request, format=None):
+		pass
+
+	def snippet_detail(request, pk, format=None):
+		pass
+
+Now update the snippets/urls.py file slightly, to append a set of format_suffix_patterns in addition to the existing URLs.
+
+from rest_framework.urlpatterns import format_suffix_patterns
+urlpatterns = format_suffix_patterns(urlpatterns)
+
+
+// Now all is done we can now request the server we have created by using the http in shell
+
+// Enter into shell py manage.py shell
+
+We can control the format of the response that we get back, either by using the Accept header:
+	http http://127.0.0.1:8000/snippets/ Accept:application/json  # Request JSON
+	http http://127.0.0.1:8000/snippets/ Accept:text/html         # Request HTML
+
+Or by appending a format suffix:
+	http http://127.0.0.1:8000/snippets.json  # JSON suffix
+	http http://127.0.0.1:8000/snippets.api   # Browsable API suffix
+
+-------------------------------------------------------------------------------------------
+CLASS BASED VIEWS T-3
+-------------------------------------------------------------------------------------------
+
+We can also write our API views using class-based views, rather than function based views. 
+As we'll see this is a powerful pattern that allows us to reuse common functionality, 
+and helps us keep our code DRY.
+
+// To write our views in class based
+	we simply inherit the class	class SnippetList(APIview):
+						pass
+
+// This class that is to be inherited 
+	is imported from 		from rest_framework.views import APIview
+
+// As we have changed our views
+	to class change url also	path('snippets/', views.SnippetList.as_view())
+
+
+-----------------------------------------------------------------------------------------
+
+USING MIXINS
+	As we all know any model-based API for create/retrieve/update/delete operations
+	are so similar and so REST_framework gives us mixin classes to help
+
+// To use mixin class we need to import	from rest_framework import mixins
+					from rest_framework import generics
+
+// As we have imported stuff we need 
+	to add them to the class 
+	inheritance			class Snippets(mixins.ListModelMixin,
+							mixins.CreateModelMixin,
+							generics.GenericAPIView):
+						queryset = Snippet.objects.all()
+    						serializer_class = SnippetSerializer
+
+    						def get(self, request, *args, **kwargs):
+        						return self.list(request, *args, **kwargs)
+
+    						def post(self, request, *args, **kwargs):
+        						return self.create(request, *args, **kwargs)
+
+The above step what happens is we are creating an GenericAPIView and we are adding
+	the ListModelMixin and CreateModelMixin
+The base class provides the core functionality, and the mixin classes provide the .list()
+and .create() actions. We're then explicitly binding the get and post methods.
+
+// Now this is for the get put delete	class SnippetDetail(mixins.RetrieveModelMixin,
+                    				mixins.UpdateModelMixin,
+			                	mixins.DestroyModelMixin,
+                    				generics.GenericAPIView):
+    							queryset = Snippet.objects.all()
+    							serializer_class = SnippetSerializer
+
+    							def get(self, request, *args, **kwargs):
+        							return self.retrieve(request, *args, **kwargs)
+
+    							def put(self, request, *args, **kwargs):
+       	 							return self.update(request, *args, **kwargs)
+
+    							def delete(self, request, *args, **kwargs):
+        							return self.destroy(request, *args, **kwargs)
+
+Similarly we are again using the GenericAPIView class to provide the core functionality
+and adding in mixins to provide the .retrieve(), .update(), .destroy() action
+
+---------------------------------------------------------------------------------------------------------
+
+USING GENERIC CLASS BASED VIEWS
+
+REST framework has set of mixed-in generic views that we can use to trim down our views.py
+
+Simple logic here is using REST framework generic class to do all the work we do explicitly
+
+// To use generic class we simply	from rest_framework import generics
+
+// After importing we inherit it 	class SnippetList(generics.ListCreateAPIView):
+						queryset = Snippet.objects.all()
+						serializer_class = SnippetSerializer
+
+					class SnippetDetail(generics.RetrieveUpdateDestroyAPIView):
+						queryset = Snippet.objects.all()
+						serializer_class = SnippetSerializer
+
+--------------------------------------------------------------------------------------------------
+AUTHENTCATION & PERMISSIONS T-4
+--------------------------------------------------------------------------------------------------
+Normally this is bit high level but is compulsory thing because without this
+any user can change data in the API and that not we need a usual API to work in
+
+So we need to modify our model in the snippets that is to add an owner for snippet
+and an highlighted text area which is for updating the snippets by the owner
+
+	owner = models.ForeignKey('auth.User', related_name='snippets', on_delete=models.CASCADE)
+	highlighted = models.TextField()
+
+
+To have this highlight we can use the pygments module 
+
+Okay next once when an user saves teh snippets we need tell django to save the user also
+and so we need to create an .save() method explicitly to overwrite default save method
+
+def save(self, *args, **kwargs):
+    """
+    Use the `pygments` library to create a highlighted HTML
+    representation of the code snippet.
+    """
+    lexer = get_lexer_by_name(self.language)
+    linenos = 'table' if self.linenos else False
+    options = {'title': self.title} if self.title else {}
+    formatter = HtmlFormatter(style=self.style, linenos=linenos,
+                              full=True, **options)
+    self.highlighted = highlight(self.code, lexer, formatter)
+    super(Snippet, self).save(*args, **kwargs)
+
+-----------------------------------------------------------------------------
+
+As we have made changes to the model we need migrate the database but 
+here we will delete and recreate for this turtorial purpose
+
+	rm -f db.sqlite3
+	rm -r snippets/migrations
+	python manage.py makemigrations snippets
+	python manage.py migrate
+
+And so the database is cleared we need to create the superuser account again 
+to create account we give the command as
+
+	py manage.py createsuperuser 
+	or 
+	py manage.py createsuperuser --username admin --email admin@example.com
+
+Okay now we have the user accounts to create snippets but we dont have the serializer 
+and so we create an serializer for user 
+
+	from django.ontrib.auth.models import User
+
+	class UserSerializer(serializers.ModelSerializer):
+		snippets = serializers.PrimaryKeyRelatedField(many=True, queryset=Snippet.objects.all())
+
+	class Meta:
+		model = User
+		fields = ['id','username','snippets']
+
+Here we are including the snippets explicitly because 'snippets' will be reverse relationship
+on the User model, by default and so we will give the ModelSerializer the snippets field
+
+As we have created the User account we will change or add the User views
+
+	from snippets.serializers import UserSerializer
+	from django.contrib.auth.models import User
+
+	class UserList(generics.ListAPIView):
+		queryset = User.objects.all()
+		serializer_class = UserSerializer
+
+	class UserDetail(generics.RetrieveAPIView):
+		queryset = User.objects.all()
+		serializer_class = UserSerializer  
+
+As we know that the views are ready now lets update the urls.py to match the views
+
+	path('users/', views.UserList.as_view()),
+	path('users/<int:pk>/', views.UserDetail.as_view()),
+
+------------------------------------------------------------------------------------
+NOTE:
+As now all the set up are ready we can test BUT there is one prob 
+All the snippets we created are not associated with the user who created it 
+so we need to create a function overwriting the create save of the snippets
+
+	def perform_create(self, serializer):
+		serializer.save(owner=self.request.user)
+Now the create() method of our serializer will now be passed an additional owner field
+
+In the serializer in the SnippetSerializer we need to add the owner field to link them
+
+	owner = serializers.ReadOnlyField(source='owner.username')
+
+we need to add the field with owner in the class meta of SnippetSerializer
+
+--------------------------------------------------------------------------------------
+
+Adding required Permission to views
+
+REST framework includes a number of permission classes that can use to restrict who can 
+access a given view. In this case the one we're looking for is IsAuthenticatedOrReadOnly
+
+	from rest_framework import permissions
+
+now we need to the permission classes to the views dir which we need
+	permission_classes = [permissions.IsAuthenticatedOrReadOnly]
+in our case both the SnippetList and SnippetDetail
+
+In this stage we dont have any login url to login our users and so we create 
+using the rest_framework.urls which creates login page 
+
+from django.urls import path, include
+
+urlpatterns+= [
+	path('api-auth', include('rest_framework.urls'))
+]
+
+
+---------------------------------------------------------------------------------------
+Object level permissions
+
+Really we'd like all code snippets to be visible to anyone, but also make sure that only the user that created a code snippet is able to update or delete it.
+
+To do that we're going to need to create a custom permission.
+
+In the snippets app, create a new file, permissions.py
+
+from rest_framework import permissions
+
+
+class IsOwnerOrReadOnly(permissions.BasePermission):
+    """
+    Custom permission to only allow owners of an object to edit it.
+    """
+
+    def has_object_permission(self, request, view, obj):
+        # Read permissions are allowed to any request,
+        # so we'll always allow GET, HEAD or OPTIONS requests.
+        if request.method in permissions.SAFE_METHODS:
+            return True
+
+        # Write permissions are only allowed to the owner of the snippet.
+        return obj.owner == request.user
+
+And in the snippets detail view just add teh IsOwnserOrReadonly class so that
+only owner can update or detail the snippets in the detail view
+
+we should import the IsOwnerOrReadOnly from the snippets.permissions
+
+	from snippets.permissions import IsOwnerOrReadOnly
+
+----------------------------------------------------------------------------------
+
+We are over with the authentication stuff and once we go through the web API 
+it works fine but to use it in the Programmable way we need to give the username password 
+in each request we make to the API 
+if we dont give the username password than our API will return 
+
+http POST http://127.0.0.1:8000/snippets/ code="print(123)"
+
+{
+    "detail": "Authentication credentials were not provided."
+}
+
+CORRECT WAY IS TO GIVE 
+
+http -a admin:password123 POST http://127.0.0.1:8000/snippets/ code="print(789)"
+
+{
+    "id": 1,
+    "owner": "admin",
+    "title": "foo",
+    "code": "print(789)",
+    "linenos": false,
+    "language": "python",
+    "style": "friendly"
+}
+
+----------------------------------------------------------------------------------------
+RELATIONSHIPS AND HYPERLINKED API  T-5
+----------------------------------------------------------------------------------------
+
+Relationships and hyperlink:
+	The term itself tells that its an hyperlink format relationship
+
+The basic idea here is to tell Django to create relationship between entities with hyperlink
+which will be easy for us to navigate to one another
+
+First lets have common API endpoint where all the links are served and so we create view func and URL
+
+from rest_framework.decorator import api_view
+from rest_framework.reverse import reverse
+
+@api_view(['GET'])
+def api_root(request, format=None):
+    return Response({
+        'users': reverse('user-list', request=request, format=format),
+        'snippets': reverse('snippet-list', request=request, format=format)
+    })
+
+
+REVERSE this is the keyword which takes the URL pattern and returns it back with full path
+
+Two things should be noticed here. 
+First, we're using REST framework's reverse function in order to return fully-qualified URLs; 
+second, URL patterns are identified by convenience names that we will declare in our snippets/urls.py.
+
+Url pattern this will match will be 
+		path('', views.api_root),
+
+
+-------------------------------------------------------------------------------------------------
+
+Also an optional thing is creating an separate endpoint to the highlighted snippets
+
+and so we create the func in views.py
+
+from rest_framework import renderers
+from rest_framework.response import Response
+
+class SnippetHighlight(generics.GenericAPIView):
+    queryset = Snippet.objects.all()
+    renderer_classes = [renderers.StaticHTMLRenderer]
+
+    def get(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+
+once the view func is ready we need to write the url to match the def func in views
+
+	path('snippets/<int:pk>/highlight/', views.SnippetHighlight.as_view()),
+
+-------------------------------------------------------------------------------------------------
+
+As we are all set with the endpoints all we have to do now is hyperlinking our API
+
+To hyperlink the urls we can use the primary Keys, unique identifing slug fields,
+	default string representation, nesting the related entity inside the parent resp etc.,
+
+We are going to use the hyperlinking between entities which is from REST_FRAMEWORK
+
+In this case we'd like to use a hyperlinked style between entities. In order to do so, 
+we'll modify our serializers to extend HyperlinkedModelSerializer instead of ModelSerializer.
+
+
+The HyperlinkedModelSerializer has the following differences from ModelSerializer:
+
+It does not include the id field by default.
+It includes a url field, using HyperlinkedIdentityField.
+Relationships use HyperlinkedRelatedField, instead of PrimaryKeyRelatedField.
+
+
+Has we changed the model inherit we must add some fields to the serializer because we have added 
+	the highlighter and owner field which is done below
+
+	Also the snippets are added to the userSerializer
+
+class SnippetSerializer(serializers.HyperlinkedModelSerializer):
+    owner = serializers.ReadOnlyField(source='owner.username')
+    highlight = serializers.HyperlinkedIdentityField(view_name='snippet-highlight', format='html')
+
+    class Meta:
+        model = Snippet
+        fields = ['url', 'id', 'highlight', 'owner',
+                  'title', 'code', 'linenos', 'language', 'style']
+
+
+class UserSerializer(serializers.HyperlinkedModelSerializer):
+    snippets = serializers.HyperlinkedRelatedField(many=True, view_name='snippet-detail', read_only=True)
+
+    class Meta:
+        model = User
+        fields = ['url', 'id', 'username', 'snippets']
+
+--------------------------------------------------------------------------------------------------
+
+As we have not named any of our URL pattern till now we need to name them
+
+PAGINATION:
+	Also we have something to keep on mind that is if our API is used by a lot of users
+	and some one wants to view the entire snippets then our API will have to work a lot
+	because there will be lot of imformation that has to be send the user and so to stop 
+	we use the pagination
+
+REST_FRAMEWORK = {
+    'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
+    'PAGE_SIZE': 10
+}
+
+----------------------------------------------------------------------------------------------------
+ViewSets & Routers T-6
+----------------------------------------------------------------------------------------------------
+
+ViewSets these are from the REST_FRAMEWORK that helps the developer to concentrate on modeling 
+the state and the interactions of the API, leaving the url const to the django
+
+VIEWSET classes are almost the same thing as VIEW classes
+	they give retrieve and update 
+	not get and put methods
+
+A ViewSet class is only bound to a set of method handlers at the last moment, 
+when it is instantiated into a set of views, typically by using a Router class 
+which handles the complexities of defining the URL conf for you.
+
+--------------------------------------------------------------------------------------------------
+refactoring to use ViewSet
+
+The same views are rewritten with the name as UserViewSet with an inheit of viewset.ReadOnlyModelViewSet
+
+This ReadonlyModelViewSet class will automatically provide the default 'read-only' operations
+
+Here also we should give the queryset and serializer_class attributes.
+
+Next we have to change the snippetList, SnippetDetail, SnippetHighlight view class can be written 
+as one class using the viewset.ModelViewSet
+
+
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import permissions
+
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+This time we've used the ModelViewSet class in order to get the complete set 
+	of default read and write operations. 
+
+
+We are also using the @action decorator to create a custom action named highlights,
+DECORATOR IS PROVIDED TO ADD MORE FUNC OTHER THAN CREATE UPDATE DELETE WHICH WILL BE CREATED BY VIEWSET 
+
+To have other operation we need to give the @action with arg render_classes, details, method, url_path
+
+
+
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from rest_framework import permissions
+
+class SnippetViewSet(viewsets.ModelViewSet):
+    """
+    This viewset automatically provides `list`, `create`, `retrieve`,
+    `update` and `destroy` actions.
+
+    Additionally we also provide an extra `highlight` action.
+    """
+    queryset = Snippet.objects.all()
+    serializer_class = SnippetSerializer
+    permission_classes = [permissions.IsAuthenticatedOrReadOnly,
+                          IsOwnerOrReadOnly]
+
+    @action(detail=True, renderer_classes=[renderers.StaticHTMLRenderer])
+    def highlight(self, request, *args, **kwargs):
+        snippet = self.get_object()
+        return Response(snippet.highlighted)
+
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+
+As we have used the ViewSet we will change the url pattern also which is a class based URL as_view()
+
+
+
+from snippets.views import SnippetViewSet, UserViewSet, api_root
+from rest_framework import renderers
+
+
+snippet_list = SnippetViewSet.as_view({
+    'get': 'list',
+    'post': 'create'
+})
+snippet_detail = SnippetViewSet.as_view({
+    'get': 'retrieve',
+    'put': 'update',
+    'patch': 'partial_update',
+    'delete': 'destroy'
+})
+snippet_highlight = SnippetViewSet.as_view({
+    'get': 'highlight'
+}, renderer_classes=[renderers.StaticHTMLRenderer])
+user_list = UserViewSet.as_view({
+    'get': 'list'
+})
+user_detail = UserViewSet.as_view({
+    'get': 'retrieve'
+})
+
+	These above lines are just the declaration of the as_view url lines
+
+urlpatterns = format_suffix_patterns([
+    path('', api_root),
+    path('snippets/', snippet_list, name='snippet-list'),
+    path('snippets/<int:pk>/', snippet_detail, name='snippet-detail'),
+    path('snippets/<int:pk>/highlight/', snippet_highlight, name='snippet-highlight'),
+    path('users/', user_list, name='user-list'),
+    path('users/<int:pk>/', user_detail, name='user-detail')
+])
+
+---------------------------------------------------------------------------------------------
+USING ROUTERS:
+
+Router is module which is from the django rest framework which helps us in genrating the 
+route for us where we dont need to create any router hard codedly
+
+simply by importing the router we can give the router default and register for what we need 
+router that is for what func from the views we need the router and the router will create it for us
+
+and once this router is registered and than we need to add it to the pattern using the 
+	include(router.urls)
+
+where all the router generated url are automatched with the request that is generated 
+
+to see the router that is auto generated we can use the simple for loop and print the urls to see
+
+		for url in router.urls:
+			print(url)
+NOTE THIS IS ONLY FOR DEVELOPMENT PURPOSE	
+
+
+Because we're using ViewSet classes rather than View classes, 
+we actually don't need to design the URL conf ourselves. The conventions for wiring up resources 
+into views and urls can be handled automatically, using a Router class. 
+All we need to do is register the appropriate view sets with a router, and let it do the rest.
+
+
+
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from snippets import views
+
+# Create a router and register our viewsets with it.
+router = DefaultRouter()
+router.register(r'snippets', views.SnippetViewSet)
+router.register(r'users', views.UserViewSet)
+
+# The API URLs are now determined automatically by the router.
+urlpatterns = [
+    path('', include(router.urls)),
+]
+
+The DefaultRouter class we're using also automatically creates the API root view for us, 
+so we can now delete the api_root method from our views module.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

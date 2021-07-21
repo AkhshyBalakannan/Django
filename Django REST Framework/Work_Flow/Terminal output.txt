@@ -41,3 +41,246 @@ OrderedDict([('title', ''), ('code', 'print("Hello World!")'), ('linenos', False
 >>> serializer = SnippetSerializer(Snippet.objects.all(), many=True)
 >>> serializer.data
 [OrderedDict([('id', 1), ('title', ''), ('code', 'var = "Hello"\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 2), ('title', ''), ('code', 'print("Hello World!")\n'), ('linenos', False), ('language', 'python'), ('style', 'friendly')]), OrderedDict([('id', 3), ('title', ''), ('code', 'print("Hello World!")'), ('linenos', False), ('language', 'python'), ('style', 'friendly')])]
+
+
+
+
+
+
+
+--------------------------------------------------------------------------------------------------------------------------------------------
+OUTPUT AFTER AUTH TUTORIAL 4
+
+D:\Django\Django REST Framework\Work_Flow>http http://127.0.0.1:8000/snippets/ Accept:'json'
+HTTP/1.1 406 Not Acceptable
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 57
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 03:52:05 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+    "detail": "Could not satisfy the request Accept header."
+}
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http http://127.0.0.1:8000/snippets.json
+HTTP/1.1 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 2
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 03:53:04 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+[]
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a admin:password123 POST http://127.0.0.1:8000/snippets/ code="print(789)"
+HTTP/1.1 201 Created
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 110
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:00:39 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+    "code": "print(789)",
+    "id": 1,
+    "language": "python",
+    "linenos": false,
+    "owner": "admin",
+    "style": "friendly",
+    "title": ""
+}
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a admin:password123 POST http://127.0.0.1:8000/snippets/ code="print(123)"
+HTTP/1.1 201 Created
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 110
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:00:52 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+    "code": "print(123)",
+    "id": 2,
+    "language": "python",
+    "linenos": false,
+    "owner": "admin",
+    "style": "friendly",
+    "title": ""
+}
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a admin:password123 POST http://127.0.0.1:8000/snippets/
+HTTP/1.1 400 Bad Request
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 36
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:01:02 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+    "code": [
+        "This field is required."
+    ]
+}
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a admin:password123 http://127.0.0.1:8000/snippets/
+HTTP/1.1 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 223
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:01:15 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+[
+    {
+        "code": "print(789)",
+        "id": 1,
+        "language": "python",
+        "linenos": false,
+        "owner": "admin",
+        "style": "friendly",
+        "title": ""
+    },
+    {
+        "code": "print(123)",
+        "id": 2,
+        "language": "python",
+        "linenos": false,
+        "owner": "admin",
+        "style": "friendly",
+        "title": ""
+    }
+]
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a testuser:password123 http://127.0.0.1:8000/snippets/
+HTTP/1.1 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 223
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:01:37 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+[
+    {
+        "code": "print(789)",
+        "id": 1,
+        "language": "python",
+        "linenos": false,
+        "owner": "admin",
+        "style": "friendly",
+        "title": ""
+    },
+    {
+        "code": "print(123)",
+        "id": 2,
+        "language": "python",
+        "linenos": false,
+        "owner": "admin",
+        "style": "friendly",
+        "title": ""
+    }
+]
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a testuser:password123 POST http://127.0.0.1:8000/snippets/ code="print('Hello I am testuser')"
+HTTP/1.1 201 Created
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 131
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:02:21 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+    "code": "print('Hello I am testuser')",
+    "id": 3,
+    "language": "python",
+    "linenos": false,
+    "owner": "testuser",
+    "style": "friendly",
+    "title": ""
+}
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a testuser:password123 POST http://127.0.0.1:8000/snippets/ code="print('try 2 from testUser')"
+HTTP/1.1 201 Created
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 131
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:02:43 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+{
+    "code": "print('try 2 from testUser')",
+    "id": 4,
+    "language": "python",
+    "linenos": false,
+    "owner": "testuser",
+    "style": "friendly",
+    "title": ""
+}
+
+
+
+D:\Django\Django REST Framework\Work_Flow>http -a testuser:password123 http://127.0.0.1:8000/snippets/
+HTTP/1.1 200 OK
+Allow: GET, POST, HEAD, OPTIONS
+Content-Length: 487
+Content-Type: application/json
+Date: Wed, 21 Jul 2021 04:02:54 GMT
+Referrer-Policy: same-origin
+Server: WSGIServer/0.2 CPython/3.9.6
+Vary: Accept, Cookie
+X-Content-Type-Options: nosniff
+X-Frame-Options: DENY
+
+[
