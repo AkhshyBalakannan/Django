@@ -108,18 +108,18 @@ MODEL AND API (DATABASE CONNECTION AND CONFIG USING DJANGO API)
 	q.parameter_2
 	q.parameter_1 = "Whats up?"
 	q.save()
-	Question.object.all()
+	Question.objects.all()
 	// AFTER SETTING __STR__ //
-	Question.object.all()			| returns us all the object created
-	Question.object.filter(parameter = val)	| Filters the results
-	Question.object.filter(id = 1)
-	Question.object.get(parameter = val)
+	Question.objects.all()			| returns us all the object created
+	Question.objects.filter(parameter = val)	| Filters the results
+	Question.objects.filter(id = 1)
+	Question.objects.get(parameter = val)
 	// WE HAVE PRIMARY-KEY SHORTCUT PK //
-	Question.object.get(pk = 1)
+	Question.objects.get(pk = 1)
 	q.choice_set.all()
 	q.choice_set.create(choice_text='not much', votes=0)
 	q.choice_set.count()
-	choice.object.filter(parameters)
+	choice.objects.filter(parameters)
 	c = q.choice_set.filter(parameters)
 	c.delete()
 
